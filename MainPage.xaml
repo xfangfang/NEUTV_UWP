@@ -8,6 +8,36 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <Button 
+            Name="button_open"
+            HorizontalAlignment="Center"
+            Content="打开媒体文件" 
+            Grid.Row="1"
+            Grid.Column="1" Click="Button_Click"/>
+
+        <MediaPlayerElement 
+            Name="video_player"
+            AutoPlay="True"
+            Grid.Row="0" 
+            Grid.Column="0"
+            Grid.RowSpan="3"
+            Grid.ColumnSpan="3"
+            Visibility="Collapsed"
+            AreTransportControlsEnabled="True"/>
+        
+        <TextBlock Name="text_file" Grid.Column="1" Grid.Row="0"/>
 
     </Grid>
 </Page>
