@@ -5,10 +5,19 @@
     xmlns:local="using:NetEasePlayer_UWP"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    NavigationCacheMode="Required"
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
         <MediaPlayerElement 
+            Grid.ColumnSpan ="3"
+            Grid.Column="1"
             Name="video_player"
             AutoPlay="True"
             AreTransportControlsEnabled="True"/>

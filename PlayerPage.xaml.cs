@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -31,11 +32,14 @@ namespace NetEasePlayer_UWP
          protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            //这个e.Parameter是获取传递过来的参数，其实大家应该再次之前判断这个参数是否为null的，我偷懒了
             Live live = (Live)e.Parameter;
+            Debug.WriteLine(Live.GetLiveName(live.GetUrlList()[0]));
             Play(live.Url);
-            //MessageDialog msg = new MessageDialog("开始播放"+live.Name);
-            //await msg.ShowAsync();
+        }
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            video_player.MediaPlayer.Source = null;
         }
         private void Play(String url)
         {
