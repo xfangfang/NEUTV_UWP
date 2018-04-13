@@ -6,8 +6,8 @@ import web
 router = (
     '/', 'Index',
     '/upload_file', 'Router.upload_file.UploadFile',
-    # '/upload_danmaku', 'UploadDanmaku',
-    # '/upload_comment', 'UploadComment',
+    '/upload_danmaku', 'Router.upload_danmaku.UploadDanmaku',
+    '/upload_comment', 'Router.upload_comment.UploadComment',
 )
 
 class Index:
