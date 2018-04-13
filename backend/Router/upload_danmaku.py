@@ -14,4 +14,4 @@ class UploadDanmaku:
         date = content.get('date')
         for key, val in content.items():
             print(key, ': ', val)
-        return date + ': ' + danmaku + ': ' + channel_id
+        return u'insert danmaku successfully'

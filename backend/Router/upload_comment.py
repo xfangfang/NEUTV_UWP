@@ -14,4 +14,4 @@ class UploadComment:
         channel_id = content.get('channel_id')
         for key, val in content.items():
             print(key, ': ', val)
-        return channel_id + ': ' + date + ': ' + comment
+        return u'insert comment successfully'
