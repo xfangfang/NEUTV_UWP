@@ -26,6 +26,26 @@ class Comment(Model):
             print('insert comment failed %s, %s, %s', self.channel_id, self.content, self.date)
             return False
 
+    # static function
+    def query_by_period(conn, beg, end):
+        cache = []
+        curr = conn.cursor()
+        sql = 'select channel_id, content, date from comment' +
+            'where datetime(date)>=datetime(?) and datetime(?)>=datetime(date)'
+        try:
+            for tmp in  curr.execute(sql, (beg, end)).fetchall():
+                cache.append(create_comment_from_tuple(tmp))
+        except Exception as e:
+            print(e)
+            raise AttributeError
+        finally:
+            curr.close()
+
+        return cache
+
+    def __str__(self):
+        return self.content
+
 def create_comment_from_args(
     channel_id = u'default', content = u'default', date = u'1111-11-11 00:00:00'
     ):

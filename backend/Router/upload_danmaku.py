@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import sqlite3
 import web
 
-from DBUtils import DBUtils
+from Utils import DBUtils
 from Models import Danmaku
 
 class UploadDanmaku:

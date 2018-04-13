@@ -8,6 +8,8 @@ router = (
     '/upload_file', 'Router.upload_file.UploadFile',
     '/upload_danmaku', 'Router.upload_danmaku.UploadDanmaku',
     '/upload_comment', 'Router.upload_comment.UploadComment',
+    '/download_danmaku', 'Router.download_danmaku.DownloadDanmaku',
+    '/donwload_comment', 'Router.download_comment.DownloadComment',
 )
 
 class Index:
