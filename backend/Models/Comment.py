@@ -16,12 +16,13 @@ class Comment(Model):
     def insert(self, conn):
         try:
             conn.execute(
-                "insert into danmaku(channel_id, content, date) values(?, ?, ?)",
+                "insert into comment(channel_id, content, date) values(?, ?, ?)",
                 (self.channel_id, self.content, self.date)
                 )
             conn.commit()
             return True
         except Exception as e:
+            print(e)
             print('insert comment failed %s, %s, %s', self.channel_id, self.content, self.date)
             return False
 
