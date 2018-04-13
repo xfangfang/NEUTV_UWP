@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import web
 
-upload_file_html = '''
+upload_file_html = u'''
 <html><head></head><body>
 <form method="POST" enctype="multipart/form-data" action="">
 <input type="file" name="filedict" />
