@@ -15,12 +15,13 @@ class DownloadComment:
         post = web.input()
         beg_date = post.get('beg_date')
         end_date = post.get('end_date')
+        channel_id = post.get('channel_id')
 
         for key, val in post.items():
             print(key, val)
 
         conn = DBUtils.get_connection()
-        comment_list = Comment.Comment.query_by_period_tuples(conn, beg_date, end_date)
+        comment_list = Comment.Comment.query_by_period_tuples(conn, beg_date, end_date, channel_id)
         DBUtils.release_connection(conn)
 
         return FileUtils.generate_comment_xml(comment_list)

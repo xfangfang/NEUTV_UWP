@@ -27,12 +27,12 @@ class Comment(Model):
             return False
 
     # static function
-    def query_by_period(conn, beg, end):
+    def query_by_period(conn, beg, end, channel_id):
         cache = []
         curr = conn.cursor()
-        sql = 'select channel_id, content, date from comment where datetime(date)>=datetime(?) and datetime(?)>=datetime(date)'
+        sql = 'select channel_id, content, date from comment where datetime(date)>=datetime(?) and datetime(?)>=datetime(date) and channel_id=?'
         try:
-            for tmp in  curr.execute(sql, (beg, end)).fetchall():
+            for tmp in  curr.execute(sql, (beg, end, channel_id)).fetchall():
                 cache.append(create_comment_from_tuple(tmp))
         except Exception as e:
             print(e)
@@ -43,10 +43,10 @@ class Comment(Model):
         return cache
 
     # static function
-    def query_by_period_tuples(conn, beg, end):
-        sql = 'select channel_id, content, date from comment where datetime(date)>=datetime(?) and datetime(?)>=datetime(date)'
+    def query_by_period_tuples(conn, beg, end, channel_id):
+        sql = 'select channel_id, content, date from comment where datetime(date)>=datetime(?) and datetime(?)>=datetime(date) and channel_id=?'
         try:
-            return conn.execute(sql, (beg, end)).fetchall()
+            return conn.execute(sql, (beg, end, channel_id)).fetchall()
         except Exception as e:
             print(e)
             raise AttributeError
