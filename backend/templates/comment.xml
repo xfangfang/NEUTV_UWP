@@ -1,0 +1,20 @@
+$def with (comment_tuples)
+
+$def comment_wraper(comment_tuple):
+    <channel_id>
+        $comment_tuple[0]
+    </channel_id>
+    <content>
+        $comment_tuple[1]
+    </content>
+    <date>
+        $comment_tuple[2]
+    </date>
+
+$def result(comments):
+    <comment>
+        $for comment in comments:
+            $:comment
+    </comment>
+
+$:result(comment_wraper(comment_tuple) for comment_tuple in comment_tuples

@@ -20,7 +20,7 @@ class DownloadComment:
             print(key, val)
 
         conn = DBUtils.get_connection()
-        comment_list = Comment.query_by_period(conn, beg_date, end_date)
+        comment_list = Comment.query_by_period_tuples(conn, beg_date, end_date)
         DBUtils.release_connection(conn)
-        
-        return FileUtils.generate_comment_file(comment_list)
+
+        return FileUtils.generate_comment_xml(comment_list)

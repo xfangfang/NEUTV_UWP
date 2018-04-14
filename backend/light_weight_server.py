@@ -10,6 +10,9 @@ router = (
     '/upload_comment', 'Router.upload_comment.UploadComment',
     '/download_danmaku', 'Router.download_danmaku.DownloadDanmaku',
     '/donwload_comment', 'Router.download_comment.DownloadComment',
+
+    # test url
+    '/g36k', 'Router.test.Hello',
 )
 
 class Index:

@@ -43,6 +43,17 @@ class Comment(Model):
 
         return cache
 
+    # static function
+    def query_by_period_tuples(conn, beg, end):
+        sql = 'select channel_id, content, date from comment' +
+            'where datetime(date)>=datetime(?) and datetime(?)>=datetime(date)'
+        try:
+            return conn.execute(sql, (beg, end)).fetchall()
+        except Exception as e:
+            print(e)
+            raise AttributeError
+            return None
+
     def __str__(self):
         return self.content
 

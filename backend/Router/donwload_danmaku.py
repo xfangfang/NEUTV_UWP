@@ -16,11 +16,11 @@ class DownloadDanmaku:
         beg_date = post.get('beg_date')
         end_date = post.get('end_date')
 
-        for key, val in  post.items():
+        for key, val in post.items():
             print(key, val)
 
         conn = DBUtils.get_connection()
-        danamku_list = Danmaku.query_by_period(conn, beg_date, end_date)
+        danamku_list = Danmaku.query_by_period_tuples(conn, beg_date, end_date)
         DBUtils.release_connection(conn)
 
-        return FileUtils.generate_danamaku_file(danamku_list)
+        return FileUtils.generate_danamaku_xml(danamku_list)

@@ -1,0 +1,14 @@
+$def with (animals)
+
+$def append_br(row):
+    <br>
+    $row
+    </br>
+
+$def print_html(animals):
+    <h1>
+    $for animal in animals:
+        $:animal
+    </h1>
+$:animals[0]
+$:print_html(append_br(animal) for animal in animals)
