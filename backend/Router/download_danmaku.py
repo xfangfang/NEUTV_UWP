@@ -9,7 +9,7 @@ from Models import Danmaku
 
 class DownloadDanmaku:
     def GET(self):
-        return None:
+        return None
 
     def POST(self):
         post = web.input()
@@ -20,7 +20,7 @@ class DownloadDanmaku:
             print(key, val)
 
         conn = DBUtils.get_connection()
-        danamku_list = Danmaku.query_by_period_tuples(conn, beg_date, end_date)
+        danmaku_list = Danmaku.Danmaku.query_by_period_tuples(conn, beg_date, end_date)
         DBUtils.release_connection(conn)
 
-        return FileUtils.generate_danamaku_xml(danamku_list)
+        return FileUtils.generate_danmaku_xml(danmaku_list)

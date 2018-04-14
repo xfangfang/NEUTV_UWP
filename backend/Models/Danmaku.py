@@ -24,12 +24,11 @@ class Danmaku(Model):
         except Exception as e:
             print("insert danmaku failed %s, %s, %s" % (self.channel_id, self.content, self.date))
             return False
-
+            
     def query_by_period(conn, beg, end):
         cache = []
         curr = conn.cursor()
-        sql = 'select channel_id, content, date from danmaku' +
-            'where datetime(date)>=datetime(?) and datetime(?)>=datetime(date)'
+        sql = 'select channel_id, content, date from danmaku where datetime(date)>=datetime(?) and datetime(?)>=datetime(date)'
         try:
             for tmp in  curr.execute(sql, (beg, end)).fetchall():
                 cache.append(create_danmaku_from_tuple(tmp))
@@ -42,10 +41,9 @@ class Danmaku(Model):
         return cache
 
     def query_by_period_tuples(conn, beg, end):
-        sql = 'select channel_id, content, date from danmaku' +
-            'where datetime(date)>=datetime(?) and datetime(?)>=datetime(date)'
+        sql = 'select channel_id, content, date from danmaku where datetime(date)>=datetime(?) and datetime(?)>=datetime(date)'
         try:
-            return conn.execute(sql, (beg, end)).fetchall():
+            return conn.execute(sql, (beg, end)).fetchall()
         except Exception as e:
             print(e)
             raise AttributeError

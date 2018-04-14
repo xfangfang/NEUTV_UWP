@@ -30,8 +30,7 @@ class Comment(Model):
     def query_by_period(conn, beg, end):
         cache = []
         curr = conn.cursor()
-        sql = 'select channel_id, content, date from comment' +
-            'where datetime(date)>=datetime(?) and datetime(?)>=datetime(date)'
+        sql = 'select channel_id, content, date from comment where datetime(date)>=datetime(?) and datetime(?)>=datetime(date)'
         try:
             for tmp in  curr.execute(sql, (beg, end)).fetchall():
                 cache.append(create_comment_from_tuple(tmp))
@@ -45,8 +44,7 @@ class Comment(Model):
 
     # static function
     def query_by_period_tuples(conn, beg, end):
-        sql = 'select channel_id, content, date from comment' +
-            'where datetime(date)>=datetime(?) and datetime(?)>=datetime(date)'
+        sql = 'select channel_id, content, date from comment where datetime(date)>=datetime(?) and datetime(?)>=datetime(date)'
         try:
             return conn.execute(sql, (beg, end)).fetchall()
         except Exception as e:

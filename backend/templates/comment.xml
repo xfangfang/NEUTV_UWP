@@ -17,4 +17,4 @@ $def result(comments):
             $:comment
     </comment>
 
-$:result(comment_wraper(comment_tuple) for comment_tuple in comment_tuples
+$:result(comment_wraper(comment_tuple) for comment_tuple in comment_tuples)
