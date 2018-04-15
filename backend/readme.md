@@ -1,5 +1,7 @@
 #如何部署服务器端？
-###前提
+
+##前提
+
 请先确保你的shell环境中的python安装了web.py这个轻量级的web框架
 
 - 克隆我们dalao的repo
