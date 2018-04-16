@@ -7,3 +7,6 @@ class Model:
 
     def insert(self, conn):
         return None
+
+    def query_by_period(conn, beg, end):
+        return None

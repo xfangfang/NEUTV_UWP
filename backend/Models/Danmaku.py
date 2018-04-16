@@ -25,11 +25,38 @@ class Danmaku(Model):
             print("insert danmaku failed %s, %s, %s" % (self.channel_id, self.content, self.date))
             return False
 
+    def query_by_period(conn, beg, end, channel_id):
+        cache = []
+        curr = conn.cursor()
+        sql = 'select channel_id, content, date from danmaku where datetime(date)>=datetime(?) and datetime(?)>=datetime(date) and channel_id=?'
+        try:
+            for tmp in  curr.execute(sql, (beg, end, channel_id)).fetchall():
+                cache.append(create_danmaku_from_tuple(tmp))
+        except Exception as e:
+            print(e)
+            raise AttributeError
+        finally:
+            curr.close()
 
-def create_danmark_from_args(
+        return cache
+
+    def query_by_period_tuples(conn, beg, end, channel_id):
+        sql = 'select channel_id, content, date from danmaku where datetime(date)>=datetime(?) and datetime(?)>=datetime(date) and channel_id=?'
+        try:
+            return conn.execute(sql, (beg, end, channel_id)).fetchall()
+        except Exception as e:
+            print(e)
+            raise AttributeError
+            return None
+
+    def __str__(self):
+        return self.content
+
+
+def create_danmaku_from_args(
     channel_id = u'default', content = u'default danmaku content', date = '1111-11-11 00:00:00'
     ):
     return Danmaku(channel_id, content, date)
 
-def create_danmark_from_tuple(tp):
+def create_danmaku_from_tuple(tp):
     return Danmaku(tp[0], tp[1], tp[2])
