@@ -9,7 +9,15 @@ from Models import Comment
 
 class DownloadComment:
     def GET(self):
+        # beg_date = "1997-05-23 03:14:15"
+        # end_date = "1997-05-23 03:14:15"
+        # channel_id = 'daikun'
+        # conn = DBUtils.get_connection()
+        # comment_list = Comment.Comment.query_by_period_tuples(conn, beg_date, end_date, channel_id)
+        # DBUtils.release_connection(conn)
         return None
+
+        return FileUtils.generate_comment_xml(comment_list)
 
     def POST(self):
         post = web.input()
