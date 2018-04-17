@@ -34,6 +34,7 @@ namespace NetEasePlayer_UWP
     {
         Dictionary<String, List<One>> listMap = new Dictionary<string, List<One>>();
         Live live;
+        TappedEventHandler listTapHandler;
 
         public PlayerPage()
         {
@@ -43,16 +44,32 @@ namespace NetEasePlayer_UWP
         {
             base.OnNavigatedTo(e);
             live = (Live)e.Parameter;
-            Debug.WriteLine(Live.GetLiveName(live.GetUrlList()[0]));
             Play(live.Url);
+            InitListTapEvent();
 
             GetList(new Uri(String.Format("https://hdtv.neu6.edu.cn/{0}.review",
                 live.GetSimpleName())));
+        }
+        private void InitListTapEvent()
+        {
+            if(listTapHandler == null)
+            {
+                listTapHandler = new TappedEventHandler((sender, e) =>
+                {
+                    var o = ((One)((TextBlock)((ListBox)sender).SelectedItem).Tag);
+                    Play("http://media2.neu6.edu.cn/review/program-"
+                            + o.start.ToString() + "-"
+                            + o.end.ToString() + "-" + live.GetSimpleName() + ".m3u8");
+                });
+                see_back_list.Tapped += listTapHandler;
+            }
         }
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
             video_player.MediaPlayer.Source = null;
+            select_date_combobox.Items.Clear();
+            select_date_combobox.SelectedValuePath = "";
         }
         private void Play(String url)
         {
@@ -106,37 +123,35 @@ namespace NetEasePlayer_UWP
                 //向页面添加
                 var dates = new List<String>(listMap.Keys);
                 dates.Sort();
-                String fang="";
+                dates.Reverse();
+                String defultComboboxTitle="";
+                if(dates.Count() != 0)
+                {
+                    defultComboboxTitle = dates[0];
+                }
                 select_date_combobox.Items.Clear();
                 foreach (var i in dates)
                 {
                     select_date_combobox.Items.Add(i);
-                    fang = i;
                 }
+
                 select_date_combobox.SelectionChanged += new SelectionChangedEventHandler((sender,e)=> {
-                   // Debug.WriteLine(select_date_combobox.SelectedItem);
                     see_back_list.Items.Clear();
                     if (select_date_combobox.SelectedItem != null)
                     {
                         foreach (var i in listMap[select_date_combobox.SelectedItem.ToString()])
                         {
-                            var t = new TextBlock();
-                            t.Text = i.name;
-                            t.Tag = i;
+                            var t = new TextBlock
+                            {
+                                Text = i.name,
+                                Tag = i
+                            };
                             see_back_list.Items.Add(t);
                         }
                     }
                 });
-                select_date_combobox.SelectedValuePath = fang;
-                see_back_list.Tapped += new TappedEventHandler((sender, e) =>
-                {
-                    var o = ((One)((TextBlock)((ListBox)sender).SelectedItem).Tag);
-                    Play("http://media2.neu6.edu.cn/review/program-"
-                            + o.start.ToString() + "-"
-                            + o.end.ToString() + "-" + live.GetSimpleName() + ".m3u8");
-                });
-                
-
+                select_date_combobox.SelectedIndex = 0;
+               // select_date_combobox.SelectedValuePath = defultComboboxTitle;
 
                 /*
                        "2018-04-05":[
