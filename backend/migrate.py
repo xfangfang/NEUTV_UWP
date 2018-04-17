@@ -15,7 +15,7 @@ def migrate(path = './danmaku_comment.db'):
     try:
         conn.execute(
             "create table danmaku (id integer primary key," +
-            "channel_id varchar(20), content varchar(100), date datetime)"
+            "channel_id varchar(20), content varchar(100), type varchar(20), date datetime)"
         )
         conn.execute(
             "create table comment (id integer primary key, " +
