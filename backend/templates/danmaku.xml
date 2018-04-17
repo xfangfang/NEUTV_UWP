@@ -1,7 +1,7 @@
 $def with (danmaku_tuples)
 
 $def danmaku_wraper(danmaku_tuple):
-    <channel_id>$danmaku_tuple[0]</channel_id><content>$danmaku_tuple[1]</content><date>$danmaku_tuple[2]</date>
+    <channel_id>$danmaku_tuple[0]</channel_id><content>$danmaku_tuple[1]</content><date>$danmaku_tuple[2]</date><type>$danmaku_tuple[3]</type>
 
 $def result(danmakus):
     <DanmakuList>
