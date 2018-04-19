@@ -119,7 +119,7 @@ namespace NetEasePlayer_UWP
             }
             g.IsItemClickEnabled = true;
             g.ItemClick += new ItemClickEventHandler((sender,arg) => {
-                Live live = (Live)((TextBlock)arg.ClickedItem).Tag;
+                Live live = (Live)((StackPanel)arg.ClickedItem).Tag;
                 Debug.WriteLine(live.Name);
                 //TODO 多页面会有内存溢出吗？
                 root.Navigate(typeof(PlayerPage),live);
