@@ -47,8 +47,8 @@ namespace NetEasePlayer_UWP
             //背景模糊
             //this.InitializeFrostedGlass(GlassHost);
             //去掉标题栏
-            //var coreTitleBar = CoreApplication.GetCurrentView().TitleBar;
-            //coreTitleBar.ExtendViewIntoTitleBar = false;
+            var coreTitleBar = CoreApplication.GetCurrentView().TitleBar;
+            coreTitleBar.ExtendViewIntoTitleBar = false;
             //var view = ApplicationView.GetForCurrentView();
            // view.TitleBar.ButtonBackgroundColor = Colors.Transparent; //将标题栏的三个键背景设为透明
             //view.TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent; //失去焦点时，将三个键背景设为透明
