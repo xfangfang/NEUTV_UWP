@@ -25,6 +25,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Hosting;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
 using Windows.Web.Http;
 
@@ -95,10 +96,26 @@ namespace NetEasePlayer_UWP
             {
                 TextBlock t = new TextBlock
                 {
-                    Text = obj.Name
+                    Text = obj.Name,
+                    FontSize = 24,
+                    HorizontalAlignment = HorizontalAlignment.Center,
                 };
-                t.Tag = obj;
-                g.Items.Add(t);
+                Image img = new Image
+                {
+                    Source = new BitmapImage(new Uri("https://hdtv.neu6.edu.cn/wall/img/" + obj.GetSimpleName() + "_s.png")),
+                    //TODO 可以换一种更睿智的方法，目前显示效果不够好
+                    //高清频道和非高清频道图片分辨率不同,手动设置图片宽高
+                    //否则非高清频道 textblock无法显示
+                    Width = 300,
+                    Height = 225
+                };
+
+                StackPanel itemPanel = new StackPanel();
+                itemPanel.Margin = new Thickness(8);
+                itemPanel.Children.Add(img);
+                itemPanel.Children.Add(t);
+                itemPanel.Tag = obj;
+                g.Items.Add(itemPanel);
             }
             g.IsItemClickEnabled = true;
             g.ItemClick += new ItemClickEventHandler((sender,arg) => {
