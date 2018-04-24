@@ -5,11 +5,13 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Data.Json;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Media.Core;
+using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
@@ -35,6 +37,7 @@ namespace NetEasePlayer_UWP
         Dictionary<String, List<One>> listMap = new Dictionary<string, List<One>>();
         Live live;
         TappedEventHandler listTapHandler;
+        RightTappedEventHandler listRightTapHandler;
 
         public PlayerPage()
         {
@@ -63,6 +66,78 @@ namespace NetEasePlayer_UWP
                 });
                 see_back_list.Tapped += listTapHandler;
             }
+            if(listRightTapHandler == null)
+            {
+                listRightTapHandler = new RightTappedEventHandler((sender, e) =>
+                {
+                    if (((ListBox)sender).SelectedItem != null)
+                    {
+                        var o = ((One)((TextBlock)((ListBox)sender).SelectedItem).Tag);
+                        DownloadShowAsync(o);
+                    }
+                });
+                see_back_list.RightTapped += listRightTapHandler;
+            }
+        }
+        private async Task DownloadShowAsync(One show)
+        {
+            // http://media2.neu6.edu.cn/review/program-1524520800-1524526860-chchd.m3u8
+            var url = String.Format("http://media2.neu6.edu.cn/review/program-{0}-{1}-{2}.m3u8",
+                show.start,show.end,live.GetSimpleName());
+            Debug.WriteLine(url);
+            //下载m3u8文件
+            HttpClient httpClient = new HttpClient();
+            var response = await httpClient.GetAsync(new Uri(url));
+            var res = await response.Content.ReadAsStringAsync();
+            Regex re = new Regex(@"(?<url>http(s)?://([\w-]+\.)+[\w-]+(/[\w- ./?%&=]*)?)");
+            MatchCollection mc = re.Matches(res);
+            List<String> urlList = new List<string>();
+            var tsRe = new Regex(@"(?<ts>[0-9]+\.ts)");
+            foreach (Match m in mc)
+            {
+                var clipUrl = m.Result("${url}");
+                urlList.Add(clipUrl);
+                var name = tsRe.Match(clipUrl).Result("${ts}");
+                res = res.Replace(clipUrl, name);
+            }
+            res = res.Replace("\n", "\r\n");
+            //创建临时文件
+            var tempDic = await KnownFolders.VideosLibrary.CreateFolderAsync("temp",
+                CreationCollisionOption.GenerateUniqueName);
+            //保存本地m3u8
+            var m3u8 = await tempDic.CreateFileAsync("index.m3u8", CreationCollisionOption.ReplaceExisting);
+
+            using (StorageStreamTransaction transaction = await m3u8.OpenTransactedWriteAsync())
+            {
+                using (DataWriter dataWriter = new DataWriter(transaction.Stream))
+                {
+                    dataWriter.WriteString(res);
+                    transaction.Stream.Size = await dataWriter.StoreAsync();
+                    await transaction.CommitAsync();
+                }
+            }
+            
+            //下载视频
+            foreach (var videoUrl in urlList)
+            {
+                
+                response = await httpClient.GetAsync(new Uri(videoUrl));
+                var sourceStream = await response.Content.ReadAsInputStreamAsync();
+                StorageFile destinationFile = await tempDic.CreateFileAsync(tsRe.Match(videoUrl).Result("${ts}"),
+                    CreationCollisionOption.GenerateUniqueName);
+                using (var destinationStream = await destinationFile.OpenAsync(FileAccessMode.ReadWrite))
+                {
+                     using (var destinationOutputStream = destinationStream.GetOutputStreamAt(0))
+                     {
+                         await RandomAccessStream.CopyAndCloseAsync(sourceStream, destinationStream);
+                     }
+                }
+                 
+            }
+            MessageDialog msg = new MessageDialog("下载完毕");
+            await msg.ShowAsync();
+            
+
         }
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
