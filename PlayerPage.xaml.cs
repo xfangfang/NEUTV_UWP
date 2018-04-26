@@ -105,6 +105,7 @@ namespace NetEasePlayer_UWP
             var tempDic = await KnownFolders.VideosLibrary.CreateFolderAsync("temp",
                 CreationCollisionOption.GenerateUniqueName);
             //保存本地m3u8
+            
             var m3u8 = await tempDic.CreateFileAsync("index.m3u8", CreationCollisionOption.ReplaceExisting);
 
             using (StorageStreamTransaction transaction = await m3u8.OpenTransactedWriteAsync())
@@ -117,23 +118,28 @@ namespace NetEasePlayer_UWP
                 }
             }
             
+
             //下载视频
-            foreach (var videoUrl in urlList)
+            StorageFile destinationFile = await tempDic.CreateFileAsync("whole.ts");
+            ulong fileSize = 0;
+           
+            using (var destinationStream = await destinationFile.OpenAsync(FileAccessMode.ReadWrite))
             {
-                
-                response = await httpClient.GetAsync(new Uri(videoUrl));
-                var sourceStream = await response.Content.ReadAsInputStreamAsync();
-                StorageFile destinationFile = await tempDic.CreateFileAsync(tsRe.Match(videoUrl).Result("${ts}"),
-                    CreationCollisionOption.GenerateUniqueName);
-                using (var destinationStream = await destinationFile.OpenAsync(FileAccessMode.ReadWrite))
+                foreach (var videoUrl in urlList)
                 {
-                     using (var destinationOutputStream = destinationStream.GetOutputStreamAt(0))
-                     {
-                         await RandomAccessStream.CopyAndCloseAsync(sourceStream, destinationStream);
-                     }
-                }
-                 
+                
+                    response = await httpClient.GetAsync(new Uri(videoUrl));
+                    var buffer = await response.Content.ReadAsBufferAsync();
+                    var stream = await response.Content.ReadAsInputStreamAsync();
+                    using (var destinationOutputStream = destinationStream.GetOutputStreamAt(fileSize))
+                    {
+                        Debug.WriteLine(fileSize);
+                        fileSize += (ulong)buffer.AsStream().Length;
+                        await RandomAccessStream.CopyAndCloseAsync(stream, destinationOutputStream);
+                    }
+                }  
             }
+
             MessageDialog msg = new MessageDialog("下载完毕");
             await msg.ShowAsync();
             
