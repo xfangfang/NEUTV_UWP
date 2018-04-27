@@ -8,7 +8,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Schedulers;
 using Windows.ApplicationModel.Core;
 using Windows.Data.Json;
 using Windows.Foundation;
@@ -161,19 +160,24 @@ namespace NetEasePlayer_UWP
             TaskFactory fac = new TaskFactory();
 
             Debug.WriteLine("start all");
-            Task.Run(() =>
+            
+            List<Action> actions = new List<Action>();
+            foreach(var videoUrl in urlList)
             {
-                Parallel.ForEach<string>(urlList, new ParallelOptions() { MaxDegreeOfParallelism = 10 }, videoUrl =>
-                {
+                actions.Add(()=> {
                     Act(videoUrl, httpClient, tempDic).Wait();
                 });
+            }
+
+           // System.Threading.ThreadPool.SetMinThreads(10, 10);
+            Task.Run(() =>
+            {
+                Parallel.Invoke(actions.ToArray());
             }).ContinueWith((obj) =>
             {
                 Debug.WriteLine("end all");
                 SaveVideoFile(tempDic, downloadDic, urlList);
             });
-           
-            
           
         }
 
