@@ -6,13 +6,18 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Schedulers;
+using Windows.ApplicationModel.Core;
 using Windows.Data.Json;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Media.Core;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.System.Threading;
+using Windows.UI.Core;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -38,6 +43,7 @@ namespace NetEasePlayer_UWP
         Live live;
         TappedEventHandler listTapHandler;
         RightTappedEventHandler listRightTapHandler;
+        static SemaphoreSlim _sem = new SemaphoreSlim(3);
 
         public PlayerPage()
         {
@@ -79,12 +85,59 @@ namespace NetEasePlayer_UWP
                 see_back_list.RightTapped += listRightTapHandler;
             }
         }
+
+
+        private async Task SaveVideoFile(StorageFolder tempDic,
+            StorageFolder downloadDic,List<String> urlList)
+        {
+            var tsRe = new Regex(@"(?<ts>[0-9]+\.ts)");
+            //新建视频文件
+            StorageFile tsFile =
+                    await downloadDic.CreateFileAsync("whole.ts",
+                    CreationCollisionOption.GenerateUniqueName);
+            ulong fileSize = 0;
+            using (var destinationStream = await tsFile.OpenAsync(FileAccessMode.ReadWrite))
+            {
+                //合并视频
+                foreach (var videoUrl in urlList)
+                {
+                    StorageFile tempFile =
+                        await tempDic.CreateFileAsync(tsRe.Match(videoUrl).Result("${ts}"),
+                        CreationCollisionOption.OpenIfExists);
+                    //  Debug.WriteLine(tsRe.Match(videoUrl).Result("${ts}"));
+                    using (var inputStream = await tempFile.OpenAsync(FileAccessMode.Read))
+                    {
+                        using (var destinationOutputStream = destinationStream.GetOutputStreamAt(fileSize))
+                        {
+                            // Debug.WriteLine(fileSize);
+                            fileSize += inputStream.Size;
+                            await RandomAccessStream.CopyAndCloseAsync(inputStream, destinationOutputStream);
+                        }
+                    }
+                }
+            }
+
+            //删除临时文件夹
+            await tempDic.DeleteAsync();
+            // Update the UI thread with the CoreDispatcher.
+            CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                        CoreDispatcherPriority.High,
+                        new DispatchedHandler(() => {
+                            ShowDialog("下载完毕");
+                        })
+            );
+
+        }
+
         private async Task DownloadShowAsync(One show)
         {
             // http://media2.neu6.edu.cn/review/program-1524520800-1524526860-chchd.m3u8
             var url = String.Format("http://media2.neu6.edu.cn/review/program-{0}-{1}-{2}.m3u8",
                 show.start,show.end,live.GetSimpleName());
             Debug.WriteLine(url);
+            //创建下载目录
+            var downloadDic = await KnownFolders.VideosLibrary.CreateFolderAsync("NEUTV download",
+                CreationCollisionOption.OpenIfExists);
             //下载m3u8文件
             HttpClient httpClient = new HttpClient();
             var response = await httpClient.GetAsync(new Uri(url));
@@ -97,53 +150,55 @@ namespace NetEasePlayer_UWP
             {
                 var clipUrl = m.Result("${url}");
                 urlList.Add(clipUrl);
-                var name = tsRe.Match(clipUrl).Result("${ts}");
-                res = res.Replace(clipUrl, name);
             }
-            res = res.Replace("\n", "\r\n");
-            //创建临时文件
-            var tempDic = await KnownFolders.VideosLibrary.CreateFolderAsync("temp",
+            
+            //创建临时文件夹
+            var tempDic = await downloadDic.CreateFolderAsync("temp",
                 CreationCollisionOption.GenerateUniqueName);
-            //保存本地m3u8
-            
-            var m3u8 = await tempDic.CreateFileAsync("index.m3u8", CreationCollisionOption.ReplaceExisting);
 
-            using (StorageStreamTransaction transaction = await m3u8.OpenTransactedWriteAsync())
+            //下载 视频分片
+            var Tasks = new List<Task>();
+            TaskFactory fac = new TaskFactory();
+
+            Debug.WriteLine("start all");
+            Task.Run(() =>
             {
-                using (DataWriter dataWriter = new DataWriter(transaction.Stream))
+                Parallel.ForEach<string>(urlList, new ParallelOptions() { MaxDegreeOfParallelism = 10 }, videoUrl =>
                 {
-                    dataWriter.WriteString(res);
-                    transaction.Stream.Size = await dataWriter.StoreAsync();
-                    await transaction.CommitAsync();
-                }
-            }
-            
-
-            //下载视频
-            StorageFile destinationFile = await tempDic.CreateFileAsync("whole.ts");
-            ulong fileSize = 0;
+                    Act(videoUrl, httpClient, tempDic).Wait();
+                });
+            }).ContinueWith((obj) =>
+            {
+                Debug.WriteLine("end all");
+                SaveVideoFile(tempDic, downloadDic, urlList);
+            });
            
+            
+          
+        }
+
+       
+        async Task Act(String videoUrl, HttpClient httpClient, StorageFolder tempDic)
+        {
+            var tsRe = new Regex(@"(?<ts>[0-9]+\.ts)");
+            Debug.WriteLine("start "+ tsRe.Match(videoUrl).Result("${ts}"));
+            var response = await httpClient.GetAsync(new Uri(videoUrl));
+            var sourceStream = await response.Content.ReadAsInputStreamAsync();
+            StorageFile destinationFile =
+                await tempDic.CreateFileAsync(tsRe.Match(videoUrl).Result("${ts}"),
+                CreationCollisionOption.GenerateUniqueName);
+
             using (var destinationStream = await destinationFile.OpenAsync(FileAccessMode.ReadWrite))
             {
-                foreach (var videoUrl in urlList)
-                {
-                
-                    response = await httpClient.GetAsync(new Uri(videoUrl));
-                    var buffer = await response.Content.ReadAsBufferAsync();
-                    var stream = await response.Content.ReadAsInputStreamAsync();
-                    using (var destinationOutputStream = destinationStream.GetOutputStreamAt(fileSize))
-                    {
-                        Debug.WriteLine(fileSize);
-                        fileSize += (ulong)buffer.AsStream().Length;
-                        await RandomAccessStream.CopyAndCloseAsync(stream, destinationOutputStream);
-                    }
-                }  
+                await RandomAccessStream.CopyAndCloseAsync(sourceStream, destinationStream);
             }
+            Debug.WriteLine("end " + tsRe.Match(videoUrl).Result("${ts}"));
+        }
 
-            MessageDialog msg = new MessageDialog("下载完毕");
+        private async Task ShowDialog(String content)
+        {
+            MessageDialog msg = new MessageDialog(content);
             await msg.ShowAsync();
-            
-
         }
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
