@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NetEasePlayer_UWP.Models;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,9 +10,12 @@ using System.Threading.Tasks;
 using Windows.Data.Json;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Media;
 using Windows.Media.Core;
+using Windows.Media.Playback;
 using Windows.Storage.Streams;
 using Windows.UI.Popups;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -36,10 +40,18 @@ namespace NetEasePlayer_UWP
         Live live;
         TappedEventHandler listTapHandler;
 
+        MediaPlayer mediaPlayer = new MediaPlayer();
+        MediaTimelineController mediaTimelineController = new MediaTimelineController();
+        DanmakuPlayer danmakuPlayer;
+        
         public PlayerPage()
         {
             this.InitializeComponent();
+
+            //
+           
         }
+        
          protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -74,8 +86,34 @@ namespace NetEasePlayer_UWP
         private void Play(String url)
         {
             Debug.WriteLine(url);
-            video_player.Source = MediaSource.CreateFromUri( new Uri(url) );
+            danmakuPlayer = new DanmakuPlayer(video_player.MediaPlayer.TimelineController);
+            container.Children.Add(danmakuPlayer.container);
+
+            Debug.WriteLine(player.Width + " player " + player.Height);
+            Debug.WriteLine(tool.Width + " tool " + player.Height);
+            video_player.MediaPlayer.Source = MediaSource.CreateFromUri( new Uri(url) );
+            //mediaPlayer.TimelineController = mediaTimelineController;
+            //var mediaSource = MediaSource.CreateFromUri(new Uri(url));
+            // mediaSource.OpenOperationCompleted += MediaSource_OpenOperationCompleted;
+            //video_player.SetMediaPlayer(mediaPlayer);
+            //mediaTimelineController.Start();
+            danmakuPlayer.Start();    
             video_player.Visibility = Visibility.Visible;
+            
+            danmakuPlayer.addTest("init");
+        }
+        private async void MediaSource_OpenOperationCompleted(MediaSource sender, MediaSourceOpenOperationCompletedEventArgs args)
+        {
+            //_duration = sender.Duration.GetValueOrDefault();
+
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                /*
+                timeLine.Minimum = 0;
+                timeLine.Maximum = _duration.TotalSeconds;
+                timeLine.StepFrequency = 1;
+                */
+            });
         }
         public async Task GetList(Uri uri)
         {
@@ -181,9 +219,114 @@ namespace NetEasePlayer_UWP
             
         }
 
-        private void Select_date_combobox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void Option1CheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            Option1CheckBox.IsChecked = true;
+            Option2CheckBox.IsChecked = false;
+            Option3CheckBox.IsChecked = false;
+        }
+
+        private void Option2CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            Option2CheckBox.IsChecked = true;
+            Option1CheckBox.IsChecked = false;
+            Option3CheckBox.IsChecked = false;
+        }
+
+        private void Option3CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            Option3CheckBox.IsChecked = true;
+            Option2CheckBox.IsChecked = false;
+            Option1CheckBox.IsChecked = false;
+        }
+
+        private void Option1CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (Option2CheckBox.IsChecked == false && Option3CheckBox.IsChecked == false)
+                Option1CheckBox.IsChecked = true;
+            else
+                Option1CheckBox.IsChecked = false;
+        }
+
+        private void Option2CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (Option1CheckBox.IsChecked == false && Option3CheckBox.IsChecked == false)
+                Option2CheckBox.IsChecked = true;
+            else
+                Option2CheckBox.IsChecked = false;
+        }
+
+        private void Option3CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (Option2CheckBox.IsChecked == false && Option1CheckBox.IsChecked == false)
+                Option3CheckBox.IsChecked = true;
+            else
+                Option3CheckBox.IsChecked = false;
+        }
+
+        private void send_Click(object sender, RoutedEventArgs e)
+        {
+            string mode ,danmakuText;
+            int offset;
+            if (Option1CheckBox.IsChecked == true) mode = "top";
+            else if (Option2CheckBox.IsChecked == true) mode = "scroll";
+            else   mode = "bottom";
+
+            danmakuText = danmakuInput.Text.ToString();
+            danmakuInput.Text = "";
+            offset = video_player.MediaPlayer.TimelineControllerPositionOffset.Seconds;
+            //Debug.WriteLine(video_player.MediaPlayer.TimelineController.State.ToString());
+            Debug.WriteLine("offset = " + offset.ToString());
+            Debug.WriteLine(video_player.MediaPlayer.PlaybackSession.PlaybackState.ToString());
+            Debug.WriteLine(video_player.MediaPlayer.PlaybackSession.Position.Seconds);
+            offset = 3;
+            danmakuPlayer.addTest(danmakuText);
+            Danmaku danmaku = new Danmaku("23",mode,"20180428","02222",offset,danmakuText);
+            if( mode == "scroll")
+            {
+                danmakuPlayer.AddScrollDanmaku(danmaku);
+            }
+            else if(mode == "top")
+            {
+                danmakuPlayer.AddTopDanmakuAsync(danmaku);
+            }
+            else
+            {
+                danmakuPlayer.AddBottomDanmaku(danmaku);
+            }
+        }
+
+        private void customMTC_Fulled(object sender, EventArgs e)
+        {
+            ApplicationView view = ApplicationView.GetForCurrentView();
+            bool isFull = view.IsFullScreenMode;
+            if (!isFull)
+            {
+                tool.Visibility = Visibility.Visible;
+                video_player.SetValue(Grid.RowProperty, 0);
+                video_player.SetValue(Grid.RowSpanProperty, 2);
+
+                player.SetValue(Grid.ColumnProperty, 1);
+                player.SetValue(Grid.ColumnSpanProperty, 3);
+
+                select_date_combobox.Visibility = Visibility.Visible;
+                see_back_list.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                video_player.SetValue(Grid.RowProperty, 0);
+                video_player.SetValue(Grid.RowSpanProperty, 3);
+                tool.Visibility = Visibility.Collapsed;
+
+                player.SetValue(Grid.RowProperty, 0);
+                player.SetValue(Grid.ColumnProperty, 0);
+                player.SetValue(Grid.ColumnSpanProperty, 4);
+
+                select_date_combobox.Visibility = Visibility.Collapsed;
+                see_back_list.Visibility = Visibility.Collapsed;
+            }
+            
+
         }
     }
 }
