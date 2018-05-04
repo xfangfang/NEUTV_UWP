@@ -40,7 +40,7 @@ namespace NetEasePlayer_UWP.Models
                 Mode = "scroll",
                 Date = new DateTime(2018, 05, 05),
                 Text = "test1",
-                Offset = new TimeSpan(3)
+                Offset = TimeSpan.FromSeconds(3)
             };
             Danmaku d2 = new Danmaku
             {
@@ -48,7 +48,7 @@ namespace NetEasePlayer_UWP.Models
                 Mode = "scroll",
                 Date = new DateTime(2018, 05, 05),
                 Text = "test222",
-                Offset = new TimeSpan(10)
+                Offset = TimeSpan.FromSeconds(10)
             };
             ret.Add(d1);ret.Add(d2);
             return ret;

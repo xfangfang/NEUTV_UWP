@@ -71,10 +71,12 @@ namespace NetEasePlayer_UWP
                 currentPosion = (TimeSpan)currentPosion;
                 if(((int)currentPosion.TotalSeconds - (int)nowPosition.TotalSeconds) >= 1)
                 {
+                    nowPosition = currentPosion;
                     danmakuPlayer.updateDanmaku(currentPosion);
                 }
                 
-                Debug.WriteLine(currentPosion);
+                //Debug.WriteLine((int)currentPosion.TotalSeconds);
+               // Debug.WriteLine((int)nowPosition.TotalSeconds);
             });
         }
         
@@ -153,6 +155,8 @@ namespace NetEasePlayer_UWP
         private void Play(String url)
         {
             Debug.WriteLine(url);
+            nowPosition = new TimeSpan(0);
+            Debug.WriteLine("init now time=" + (int)nowPosition.TotalSeconds);
             if (isLive)
                 danmakuPlayer = new DanmakuPlayer();
             else

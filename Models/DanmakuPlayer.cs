@@ -124,6 +124,10 @@ namespace NetEasePlayer_UWP.Models
             if (this.container != null)
                 this.container.Children.Clear();
             this.danmakus = DanmakuManager.Instance.GetInitDanmaku();
+            foreach (var item in danmakus)
+            {
+                Debug.WriteLine("init danmaku offset=" + (int)item.Offset.TotalSeconds);
+            }
             #endregion
             /*
             if (danmakus != null)
