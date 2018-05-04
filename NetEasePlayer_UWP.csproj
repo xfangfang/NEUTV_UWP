@@ -99,6 +99,9 @@
     <Compile Include="Models\Danmaku.cs" />
     <Compile Include="Models\DanmakuManager.cs" />
     <Compile Include="Models\DanmakuPlayer.cs" />
+
+    <Compile Include="DownManager.cs" />
+
     <Compile Include="one.cs" />
     <Compile Include="PlayerPage.xaml.cs">
       <DependentUpon>PlayerPage.xaml</DependentUpon>

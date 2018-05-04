@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.Data.Json;
@@ -14,7 +16,10 @@ using Windows.Foundation.Collections;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
+using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.System.Threading;
+
 using Windows.UI.Core;
 using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
@@ -41,6 +46,8 @@ namespace NetEasePlayer_UWP
         Dictionary<String, List<One>> listMap = new Dictionary<string, List<One>>();
         Live live;
         TappedEventHandler listTapHandler;
+        RightTappedEventHandler listRightTapHandler;
+        static SemaphoreSlim _sem = new SemaphoreSlim(3);
 
         
         MediaPlayer mediaPlayer = new MediaPlayer();
@@ -88,7 +95,6 @@ namespace NetEasePlayer_UWP
             });
         }
 
-
         #region NavigatePlayList
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -113,7 +119,22 @@ namespace NetEasePlayer_UWP
                 });
                 see_back_list.Tapped += listTapHandler;
             }
+            if(listRightTapHandler == null)
+            {
+                listRightTapHandler = new RightTappedEventHandler((sender, e) =>
+                {
+                    if (((ListBox)sender).SelectedItem != null)
+                    {
+                        var o = ((One)((TextBlock)((ListBox)sender).SelectedItem).Tag);
+                        DownManager.DownloadShowAsync(o,live);
+                    }
+                });
+                see_back_list.RightTapped += listRightTapHandler;
+            }
         }
+
+
+       
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
