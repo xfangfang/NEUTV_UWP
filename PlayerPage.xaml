@@ -27,15 +27,15 @@
                                 AreTransportControlsEnabled="True">
                 <MediaPlayerElement.TransportControls>
                     <local:CustomMediaTransportControls x:Name="customMTC"
-                                               IsFullWindowButtonVisible="False"
-                                            IsCompact="False"
-                                                   Fulled="customMTC_Fulled"
+                                                        IsFullWindowButtonVisible="False"
+                                                        IsCompact="False"
+                                                        Fulled="customMTC_Fulled"
                                                         >
                     </local:CustomMediaTransportControls>
                 </MediaPlayerElement.TransportControls>
             </MediaPlayerElement>
             <Grid Name="container" Grid.Row="0">
-                <TextBlock FontSize="48" Foreground="White">danmakuTest</TextBlock>
+                
             </Grid>
             <Grid Name="tool" Grid.Row="2">
                 <Grid.ColumnDefinitions>

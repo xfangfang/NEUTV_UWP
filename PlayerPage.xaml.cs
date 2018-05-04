@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.Core;
 using Windows.Data.Json;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -14,6 +15,7 @@ using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage.Streams;
+using Windows.UI.Core;
 using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
@@ -40,19 +42,55 @@ namespace NetEasePlayer_UWP
         Live live;
         TappedEventHandler listTapHandler;
 
+        
         MediaPlayer mediaPlayer = new MediaPlayer();
         MediaTimelineController mediaTimelineController = new MediaTimelineController();
         DanmakuPlayer danmakuPlayer;
+        
         
         public PlayerPage()
         {
             this.InitializeComponent();
 
-            //
-           
+            video_player.MediaPlayer.PlaybackSession.PlaybackStateChanged += myPlaybackSession_PlaybackStateChanged;
+            //video_player.MediaPlayer.PlaybackSession.PositionChanged += myPlaybackSession_PositionChangedAsync;
         }
-        
-         protected override void OnNavigatedTo(NavigationEventArgs e)
+        /* 能实时获取player position，可换另一种方式实现弹幕添加
+        private async void myPlaybackSession_PositionChangedAsync(MediaPlaybackSession sender, object args)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
+            () =>
+            {
+                // Your UI update code goes here!
+                var currentPosion = video_player.MediaPlayer.PlaybackSession.Position;
+                Debug.WriteLine(currentPosion);
+            });
+        }
+        */
+        //弹幕的播放和暂停
+        private async void myPlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
+        {
+            //必须使用Dispatcher切换到主UI线程
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
+            () =>
+            {
+                // Your UI update code goes here!
+                Debug.WriteLine("enter state changed");
+                var currentState = video_player.MediaPlayer.PlaybackSession.PlaybackState;
+                if (currentState == MediaPlaybackState.Playing)
+                {
+                    danmakuPlayer.Play();
+                }
+                else if (currentState == MediaPlaybackState.Paused)
+                {
+                    danmakuPlayer.Pause();
+                }
+            });
+        }
+
+
+        #region NavigatePlayList
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
             live = (Live)e.Parameter;
@@ -86,35 +124,35 @@ namespace NetEasePlayer_UWP
         private void Play(String url)
         {
             Debug.WriteLine(url);
-            danmakuPlayer = new DanmakuPlayer(video_player.MediaPlayer.TimelineController);
+
+            danmakuPlayer = new DanmakuPlayer();
+            if(container.Children != null)
+                container.Children.Clear();
             container.Children.Add(danmakuPlayer.container);
 
             Debug.WriteLine(player.Width + " player " + player.Height);
             Debug.WriteLine(tool.Width + " tool " + player.Height);
             video_player.MediaPlayer.Source = MediaSource.CreateFromUri( new Uri(url) );
-            //mediaPlayer.TimelineController = mediaTimelineController;
-            //var mediaSource = MediaSource.CreateFromUri(new Uri(url));
-            // mediaSource.OpenOperationCompleted += MediaSource_OpenOperationCompleted;
-            //video_player.SetMediaPlayer(mediaPlayer);
-            //mediaTimelineController.Start();
-            danmakuPlayer.Start();    
+
             video_player.Visibility = Visibility.Visible;
-            
-            danmakuPlayer.addTest("init");
+            danmakuPlayer.Start();    
+
         }
+        /*
         private async void MediaSource_OpenOperationCompleted(MediaSource sender, MediaSourceOpenOperationCompletedEventArgs args)
         {
             //_duration = sender.Duration.GetValueOrDefault();
 
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                /*
+
                 timeLine.Minimum = 0;
                 timeLine.Maximum = _duration.TotalSeconds;
                 timeLine.StepFrequency = 1;
-                */
+
+                Debug.WriteLine("Dispatcher");
             });
-        }
+        }*/
         public async Task GetList(Uri uri)
         {
 
@@ -218,7 +256,15 @@ namespace NetEasePlayer_UWP
             }
             
         }
+        #endregion
 
+        #region chooseDanmakuMode
+        /// <summary>
+        /// 选择弹幕模式
+        /// 实现方式太暴力辣
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Option1CheckBox_Checked(object sender, RoutedEventArgs e)
         {
             Option1CheckBox.IsChecked = true;
@@ -263,7 +309,13 @@ namespace NetEasePlayer_UWP
             else
                 Option3CheckBox.IsChecked = false;
         }
+        #endregion
 
+        /// <summary>
+        /// 发射弹幕按钮按下时，根据弹幕模式添加对应弹幕
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void send_Click(object sender, RoutedEventArgs e)
         {
             string mode ,danmakuText;
@@ -274,28 +326,35 @@ namespace NetEasePlayer_UWP
 
             danmakuText = danmakuInput.Text.ToString();
             danmakuInput.Text = "";
+
+            //offset 需要修改
             offset = video_player.MediaPlayer.TimelineControllerPositionOffset.Seconds;
             //Debug.WriteLine(video_player.MediaPlayer.TimelineController.State.ToString());
+
             Debug.WriteLine("offset = " + offset.ToString());
             Debug.WriteLine(video_player.MediaPlayer.PlaybackSession.PlaybackState.ToString());
             Debug.WriteLine(video_player.MediaPlayer.PlaybackSession.Position.Seconds);
-            offset = 3;
-            danmakuPlayer.addTest(danmakuText);
+            offset = 0;
+
             Danmaku danmaku = new Danmaku("23",mode,"20180428","02222",offset,danmakuText);
             if( mode == "scroll")
             {
-                danmakuPlayer.AddScrollDanmaku(danmaku);
+                danmakuPlayer.AddScrollDanmaku(danmaku,true);
             }
             else if(mode == "top")
             {
-                danmakuPlayer.AddTopDanmakuAsync(danmaku);
+                danmakuPlayer.AddTopDanmakuAsync(danmaku,true);
             }
             else
             {
-                danmakuPlayer.AddBottomDanmaku(danmaku);
+                danmakuPlayer.AddBottomDanmaku(danmaku,true);
             }
         }
-
+        /// <summary>
+        /// 全屏/退出全屏时调整MediaPlayerElement控件位置
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void customMTC_Fulled(object sender, EventArgs e)
         {
             ApplicationView view = ApplicationView.GetForCurrentView();

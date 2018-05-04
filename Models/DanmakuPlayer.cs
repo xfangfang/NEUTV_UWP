@@ -26,11 +26,13 @@ namespace NetEasePlayer_UWP.Models
         public DanmakuManager danmakuManager = new DanmakuManager();
 
         public bool[] isOccupied, isTopOccupied, isBottomOccupied;
-        public DanmakuPlayer( MediaTimelineController mediaTimelineController)
+        public DanmakuPlayer()
         {
             isPause = false;
-
-            this.mediaTimelineController = mediaTimelineController;
+            if(this.danmakus!= null)
+                this.danmakus.Clear();
+            if(this.container != null)
+                this.container.Children.Clear();
             this.danmakus = danmakuManager.GetInitDanmaku();
 
             foreach (Danmaku item in danmakus)
@@ -38,60 +40,44 @@ namespace NetEasePlayer_UWP.Models
                
                 if(item.mode == "scroll")
                 {
-                    this.AddScrollDanmaku(item);
+                    this.AddScrollDanmaku(item,false);
                 }
                 else if(item.mode == "top")
                 {
-                    this.AddTopDanmakuAsync(item);
+                    this.AddTopDanmakuAsync(item,false);
                 }
                 else
                 {
-                    this.AddBottomDanmaku(item);
+                    this.AddBottomDanmaku(item,false);
                 }
             }
             Debug.WriteLine("danmakus size"+danmakus.Capacity);
             Debug.WriteLine("storyboard size" + storyBoards.Capacity);
         }
-        public void addTest(string test)
-        {
-            Grid danmakuGrid = new Grid();
-            TextBlock tb = new TextBlock
-            {
-                Text = test,
-                FontSize = 24,
-                Foreground = new SolidColorBrush(Colors.White)
-            };
-            danmakuGrid.Children.Add(tb); container.Children.Add(danmakuGrid);
-            Debug.WriteLine("addTest");
-        }
-        public void AddScrollDanmaku(Danmaku danmaku)
+        #region Add Danmaku
+        public void AddScrollDanmaku(Danmaku danmaku,bool isNewDanmaku)
         {
             double xx, yy;
             xx = 400; yy = 200;
             Grid danmakuGrid = new Grid
             {
-                Margin = new Thickness(xx, yy, 0, 0)
+                Margin = new Thickness(0, yy, 0, 0)
             };
             TextBlock tb = new TextBlock
             {
                 Text = danmaku.text,
                 FontSize = 24,
-                Foreground = new SolidColorBrush(Colors.White)
+                Foreground = new SolidColorBrush(Colors.White),
             };
-            TextBlock tbb = new TextBlock
-            {
-                Text = danmaku.text,
-                FontSize = 24,
-                Foreground = new SolidColorBrush(Colors.White)
-            };
-            danmakuGrid.Children.Add(tbb);
+ 
+            danmakuGrid.Children.Add(tb);
             TranslateTransform c = new TranslateTransform();
             danmakuGrid.RenderTransform = c;
 
             Storyboard sb = new Storyboard();
             DoubleAnimation animation = new DoubleAnimation
             {
-                From = xx,
+                From = 4*xx,
                 To = -xx,
                 Duration = new Duration(TimeSpan.FromSeconds(5))
             };
@@ -109,8 +95,14 @@ namespace NetEasePlayer_UWP.Models
             Storyboard.SetTargetProperty(animation, "(danmakuGrid.RenderTransform).(TranslateTransform.X)");
             sb.Children.Add(animation);
             container.Children.Add(danmakuGrid);
-            sb.BeginTime = TimeSpan.FromSeconds(danmaku.offset);
-            
+            if (isNewDanmaku)
+            {
+                sb.BeginTime = TimeSpan.FromSeconds(0);
+            }
+            else
+            {
+                sb.BeginTime = TimeSpan.FromSeconds(danmaku.offset);
+            }
             storyBoards.Add(sb);
 
             if (!danmakus.Contains(danmaku)) danmakus.Add(danmaku);
@@ -118,9 +110,18 @@ namespace NetEasePlayer_UWP.Models
             sb.Begin();
             Debug.WriteLine(danmaku.text);
         }
-        public async void AddTopDanmakuAsync(Danmaku danmaku)
+        public async void AddTopDanmakuAsync(Danmaku danmaku,bool isNewDanmaku)
         {
             double xx, yy=20;
+            int offset;
+            if (isNewDanmaku)
+            {
+                offset = 0;
+            }
+            else
+            {
+                offset = danmaku.offset;
+            }
             Grid danmakuGrid = new Grid
             {
                 Margin = new Thickness(0, 0, 0, 0),
@@ -133,7 +134,7 @@ namespace NetEasePlayer_UWP.Models
                 FontSize = 24,
                 Foreground = new SolidColorBrush(Colors.White)
             };
-            await Task.Delay(danmaku.offset*1000);
+            await Task.Delay(offset*1000);
             if (isPause)
             {
                 while (isPause)
@@ -157,9 +158,18 @@ namespace NetEasePlayer_UWP.Models
             }
 
         }
-        public async void AddBottomDanmaku(Danmaku danmaku)
+        public async void AddBottomDanmaku(Danmaku danmaku,bool isNewDanmaku)
         {
             double xx, yy = 350;
+            int offset;
+            if (isNewDanmaku)
+            {
+                offset = 0;
+            }
+            else
+            {
+                offset = danmaku.offset;
+            }
             Grid danmakuGrid = new Grid
             {
                 Margin = new Thickness(0, yy, 0, 0),
@@ -172,7 +182,7 @@ namespace NetEasePlayer_UWP.Models
                 FontSize = 24,
                 Foreground = new SolidColorBrush(Colors.White)
             };
-            await Task.Delay(danmaku.offset * 1000);
+            await Task.Delay(offset * 1000);
             if (isPause)
             {
                 while (isPause)
@@ -195,6 +205,7 @@ namespace NetEasePlayer_UWP.Models
                 container.Children.Remove(danmakuGrid);
             }
         }
+        #endregion
         public void Start()
         {
             foreach (var item in storyBoards)
