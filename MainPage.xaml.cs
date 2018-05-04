@@ -85,7 +85,8 @@ namespace NetEasePlayer_UWP
         public void AddItem(PlayList playList)
         {
             GridView g = new GridView();
-            PivotItem pi1 = new PivotItem
+
+             PivotItem pi1 = new PivotItem
             {
                 Header = playList.Name,
                 Content = g
