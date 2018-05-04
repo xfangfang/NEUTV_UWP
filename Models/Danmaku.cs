@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -73,18 +74,22 @@ namespace NetEasePlayer_UWP.Models
            
         }
 
-        public static List<Danmaku> Xml2DanmakuList(string xmlSourcePath)
+        public static List<Danmaku> Xml2DanmakuList(string xmlSourceStr)
         {
             List<Danmaku> tmpList = new List<Danmaku>();
             XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(xmlSourcePath);
+            xmlDoc.LoadXml(xmlSourceStr);
             XmlNodeList nodelist = xmlDoc.SelectNodes("DanmakuList/Danmaku");
             foreach (XmlNode node in nodelist)
             {
                 Danmaku entity = new Danmaku();
                 entity.Mode = HttpUtility.HtmlEncode(node["type"].InnerText);
                 entity.Channel_id = HttpUtility.HtmlEncode(node["channel_id"].InnerText);
-                entity.Date = node["date"].InnerText.ToString();
+
+                DateTimeFormatInfo dtFormat = new DateTimeFormatInfo();
+                dtFormat.ShortDatePattern = "yyyy-MM-dd hh:mm:ss";
+
+                entity.Date = Convert.ToDateTime(node["date"].InnerText, dtFormat);
                 entity.Text = node["content"].InnerText;
                 tmpList.Add(entity);
             }
