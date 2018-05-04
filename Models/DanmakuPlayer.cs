@@ -33,26 +33,26 @@ namespace NetEasePlayer_UWP.Models
                 this.danmakus.Clear();
             if(this.container != null)
                 this.container.Children.Clear();
-            this.danmakus = danmakuManager.GetInitDanmaku();
-
-            foreach (Danmaku item in danmakus)
+            //this.danmakus = danmakuManager.GetInitDanmaku();
+            if (danmakus != null)
             {
-               
-                if(item.mode == "scroll")
+                foreach (Danmaku item in danmakus)
                 {
-                    this.AddScrollDanmaku(item,false);
-                }
-                else if(item.mode == "top")
-                {
-                    this.AddTopDanmakuAsync(item,false);
-                }
-                else
-                {
-                    this.AddBottomDanmaku(item,false);
+
+                    if (item.Mode == "scroll")
+                    {
+                        this.AddScrollDanmaku(item, false);
+                    }
+                    else if (item.Mode == "top")
+                    {
+                        this.AddTopDanmakuAsync(item, false);
+                    }
+                    else
+                    {
+                        this.AddBottomDanmaku(item, false);
+                    }
                 }
             }
-            Debug.WriteLine("danmakus size"+danmakus.Capacity);
-            Debug.WriteLine("storyboard size" + storyBoards.Capacity);
         }
         #region Add Danmaku
         public void AddScrollDanmaku(Danmaku danmaku,bool isNewDanmaku)
@@ -65,7 +65,7 @@ namespace NetEasePlayer_UWP.Models
             };
             TextBlock tb = new TextBlock
             {
-                Text = danmaku.text,
+                Text = danmaku.Text,
                 FontSize = 24,
                 Foreground = new SolidColorBrush(Colors.White),
             };
@@ -101,14 +101,15 @@ namespace NetEasePlayer_UWP.Models
             }
             else
             {
-                sb.BeginTime = TimeSpan.FromSeconds(danmaku.offset);
+                //sb.BeginTime = TimeSpan.FromSeconds(danmaku.offset);
+                sb.BeginTime = TimeSpan.FromSeconds(0);
             }
             storyBoards.Add(sb);
 
-            if (!danmakus.Contains(danmaku)) danmakus.Add(danmaku);
+            if (danmakus!=null&&!danmakus.Contains(danmaku)) danmakus.Add(danmaku);
 
             sb.Begin();
-            Debug.WriteLine(danmaku.text);
+            Debug.WriteLine(danmaku.Text);
         }
         public async void AddTopDanmakuAsync(Danmaku danmaku,bool isNewDanmaku)
         {
@@ -120,7 +121,8 @@ namespace NetEasePlayer_UWP.Models
             }
             else
             {
-                offset = danmaku.offset;
+                // offset = danmaku.offset;
+                offset = 0;
             }
             Grid danmakuGrid = new Grid
             {
@@ -130,7 +132,7 @@ namespace NetEasePlayer_UWP.Models
             };
             TextBlock tb = new TextBlock
             {
-                Text = danmaku.text,
+                Text = danmaku.Text,
                 FontSize = 24,
                 Foreground = new SolidColorBrush(Colors.White)
             };
@@ -168,7 +170,7 @@ namespace NetEasePlayer_UWP.Models
             }
             else
             {
-                offset = danmaku.offset;
+                offset = 0;// danmaku.offset;
             }
             Grid danmakuGrid = new Grid
             {
@@ -178,7 +180,7 @@ namespace NetEasePlayer_UWP.Models
             };
             TextBlock tb = new TextBlock
             {
-                Text = danmaku.text,
+                Text = danmaku.Text,
                 FontSize = 24,
                 Foreground = new SolidColorBrush(Colors.White)
             };

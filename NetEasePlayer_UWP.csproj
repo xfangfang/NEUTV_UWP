@@ -96,12 +96,10 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="CustomMediaTransportControls.cs" />
+    <Compile Include="Models\Converter.cs" />
     <Compile Include="Models\Danmaku.cs" />
-    <Compile Include="Models\DanmakuManager.cs" />
     <Compile Include="Models\DanmakuPlayer.cs" />
-
     <Compile Include="DownManager.cs" />
-
     <Compile Include="one.cs" />
     <Compile Include="PlayerPage.xaml.cs">
       <DependentUpon>PlayerPage.xaml</DependentUpon>
