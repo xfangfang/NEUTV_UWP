@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NetEasePlayer_UWP.Models;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -12,12 +13,16 @@ using Windows.ApplicationModel.Core;
 using Windows.Data.Json;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Media;
 using Windows.Media.Core;
+using Windows.Media.Playback;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.System.Threading;
+
 using Windows.UI.Core;
 using Windows.UI.Popups;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -44,10 +49,53 @@ namespace NetEasePlayer_UWP
         RightTappedEventHandler listRightTapHandler;
         static SemaphoreSlim _sem = new SemaphoreSlim(3);
 
+        
+        MediaPlayer mediaPlayer = new MediaPlayer();
+        MediaTimelineController mediaTimelineController = new MediaTimelineController();
+        DanmakuPlayer danmakuPlayer;
+        
+        
         public PlayerPage()
         {
             this.InitializeComponent();
+
+            video_player.MediaPlayer.PlaybackSession.PlaybackStateChanged += myPlaybackSession_PlaybackStateChanged;
+            //video_player.MediaPlayer.PlaybackSession.PositionChanged += myPlaybackSession_PositionChangedAsync;
         }
+        /* 能实时获取player position，可换另一种方式实现弹幕添加
+        private async void myPlaybackSession_PositionChangedAsync(MediaPlaybackSession sender, object args)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
+            () =>
+            {
+                // Your UI update code goes here!
+                var currentPosion = video_player.MediaPlayer.PlaybackSession.Position;
+                Debug.WriteLine(currentPosion);
+            });
+        }
+        */
+        //弹幕的播放和暂停
+        private async void myPlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
+        {
+            //必须使用Dispatcher切换到主UI线程
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
+            () =>
+            {
+                // Your UI update code goes here!
+                Debug.WriteLine("enter state changed");
+                var currentState = video_player.MediaPlayer.PlaybackSession.PlaybackState;
+                if (currentState == MediaPlaybackState.Playing)
+                {
+                    danmakuPlayer.Play();
+                }
+                else if (currentState == MediaPlaybackState.Paused)
+                {
+                    danmakuPlayer.Pause();
+                }
+            });
+        }
+
+        #region NavigatePlayList
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -97,9 +145,35 @@ namespace NetEasePlayer_UWP
         private void Play(String url)
         {
             Debug.WriteLine(url);
-            video_player.Source = MediaSource.CreateFromUri( new Uri(url) );
+
+            danmakuPlayer = new DanmakuPlayer();
+            if(container.Children != null)
+                container.Children.Clear();
+            container.Children.Add(danmakuPlayer.container);
+
+            Debug.WriteLine(player.Width + " player " + player.Height);
+            Debug.WriteLine(tool.Width + " tool " + player.Height);
+            video_player.MediaPlayer.Source = MediaSource.CreateFromUri( new Uri(url) );
+
             video_player.Visibility = Visibility.Visible;
+            danmakuPlayer.Start();    
+
         }
+        /*
+        private async void MediaSource_OpenOperationCompleted(MediaSource sender, MediaSourceOpenOperationCompletedEventArgs args)
+        {
+            //_duration = sender.Duration.GetValueOrDefault();
+
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+
+                timeLine.Minimum = 0;
+                timeLine.Maximum = _duration.TotalSeconds;
+                timeLine.StepFrequency = 1;
+
+                Debug.WriteLine("Dispatcher");
+            });
+        }*/
         public async Task GetList(Uri uri)
         {
 
@@ -203,10 +277,136 @@ namespace NetEasePlayer_UWP
             }
             
         }
+        #endregion
 
-        private void Select_date_combobox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        #region chooseDanmakuMode
+        /// <summary>
+        /// 选择弹幕模式
+        /// 实现方式太暴力辣
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Option1CheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            Option1CheckBox.IsChecked = true;
+            Option2CheckBox.IsChecked = false;
+            Option3CheckBox.IsChecked = false;
+        }
+
+        private void Option2CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            Option2CheckBox.IsChecked = true;
+            Option1CheckBox.IsChecked = false;
+            Option3CheckBox.IsChecked = false;
+        }
+
+        private void Option3CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            Option3CheckBox.IsChecked = true;
+            Option2CheckBox.IsChecked = false;
+            Option1CheckBox.IsChecked = false;
+        }
+
+        private void Option1CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (Option2CheckBox.IsChecked == false && Option3CheckBox.IsChecked == false)
+                Option1CheckBox.IsChecked = true;
+            else
+                Option1CheckBox.IsChecked = false;
+        }
+
+        private void Option2CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (Option1CheckBox.IsChecked == false && Option3CheckBox.IsChecked == false)
+                Option2CheckBox.IsChecked = true;
+            else
+                Option2CheckBox.IsChecked = false;
+        }
+
+        private void Option3CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (Option2CheckBox.IsChecked == false && Option1CheckBox.IsChecked == false)
+                Option3CheckBox.IsChecked = true;
+            else
+                Option3CheckBox.IsChecked = false;
+        }
+        #endregion
+
+        /// <summary>
+        /// 发射弹幕按钮按下时，根据弹幕模式添加对应弹幕
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void send_Click(object sender, RoutedEventArgs e)
+        {
+            string mode ,danmakuText;
+            int offset;
+            if (Option1CheckBox.IsChecked == true) mode = "top";
+            else if (Option2CheckBox.IsChecked == true) mode = "scroll";
+            else   mode = "bottom";
+
+            danmakuText = danmakuInput.Text.ToString();
+            danmakuInput.Text = "";
+
+            //offset 需要修改
+            offset = video_player.MediaPlayer.TimelineControllerPositionOffset.Seconds;
+            //Debug.WriteLine(video_player.MediaPlayer.TimelineController.State.ToString());
+
+            Debug.WriteLine("offset = " + offset.ToString());
+            Debug.WriteLine(video_player.MediaPlayer.PlaybackSession.PlaybackState.ToString());
+            Debug.WriteLine(video_player.MediaPlayer.PlaybackSession.Position.Seconds);
+            offset = 0;
+
+            Danmaku danmaku = new Danmaku("23",mode,"20180428","02222",offset,danmakuText);
+            if( mode == "scroll")
+            {
+                danmakuPlayer.AddScrollDanmaku(danmaku,true);
+            }
+            else if(mode == "top")
+            {
+                danmakuPlayer.AddTopDanmakuAsync(danmaku,true);
+            }
+            else
+            {
+                danmakuPlayer.AddBottomDanmaku(danmaku,true);
+            }
+        }
+        /// <summary>
+        /// 全屏/退出全屏时调整MediaPlayerElement控件位置
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void customMTC_Fulled(object sender, EventArgs e)
+        {
+            ApplicationView view = ApplicationView.GetForCurrentView();
+            bool isFull = view.IsFullScreenMode;
+            if (!isFull)
+            {
+                tool.Visibility = Visibility.Visible;
+                video_player.SetValue(Grid.RowProperty, 0);
+                video_player.SetValue(Grid.RowSpanProperty, 2);
+
+                player.SetValue(Grid.ColumnProperty, 1);
+                player.SetValue(Grid.ColumnSpanProperty, 3);
+
+                select_date_combobox.Visibility = Visibility.Visible;
+                see_back_list.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                video_player.SetValue(Grid.RowProperty, 0);
+                video_player.SetValue(Grid.RowSpanProperty, 3);
+                tool.Visibility = Visibility.Collapsed;
+
+                player.SetValue(Grid.RowProperty, 0);
+                player.SetValue(Grid.ColumnProperty, 0);
+                player.SetValue(Grid.ColumnSpanProperty, 4);
+
+                select_date_combobox.Visibility = Visibility.Collapsed;
+                see_back_list.Visibility = Visibility.Collapsed;
+            }
+            
+
         }
     }
 }

@@ -50,15 +50,20 @@
             Visibility="Collapsed"
             Grid.Column="1" Click="Button_Click"/>
 
-        <MediaPlayerElement 
-            Name="video_player"
-            AutoPlay="True"
-            Grid.Row="0" 
-            Grid.Column="0"
-            Grid.RowSpan="3"
-            Grid.ColumnSpan="3"
-            Visibility="Collapsed"
-            AreTransportControlsEnabled="True"/>
+        <Grid  Grid.Row="0" Grid.Column="0" Grid.RowSpan="3"  Grid.ColumnSpan="3">
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            <MediaPlayerElement Name="video_player" AutoPlay="True"
+                                 Grid.Row="0" Grid.Column="0"
+                                 Grid.RowSpan="2"
+                                 Visibility="Collapsed"
+                                AreTransportControlsEnabled="True"/>
+            
+        </Grid>
+       
 
 
     </Grid>

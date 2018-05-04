@@ -15,14 +15,56 @@
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <MediaPlayerElement 
-            Grid.ColumnSpan ="3"
-            Grid.Column="1"
-            Name="video_player"
-            AutoPlay="True"
-            AreTransportControlsEnabled="True"/>
-        <Grid
-            Name="content"
+        <Grid Name="player" Grid.ColumnSpan ="3" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="14*"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="100"></RowDefinition>
+            </Grid.RowDefinitions>
+            <MediaPlayerElement  Grid.RowSpan="2" Grid.Row="0"
+                                Name="video_player"
+                                AutoPlay="True"
+                                AreTransportControlsEnabled="True">
+                <MediaPlayerElement.TransportControls>
+                    <local:CustomMediaTransportControls x:Name="customMTC"
+                                                        IsFullWindowButtonVisible="False"
+                                                        IsCompact="False"
+                                                        Fulled="customMTC_Fulled"
+                                                        >
+                    </local:CustomMediaTransportControls>
+                </MediaPlayerElement.TransportControls>
+            </MediaPlayerElement>
+            <Grid Name="container" Grid.Row="0">
+                
+            </Grid>
+            <Grid Name="tool" Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="auto"/>
+                    
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Vertical" Grid.Column="0" Margin="5,5,5,5">
+                    <CheckBox x:Name="Option1CheckBox" Content="顶端弹幕" 
+                              Checked="Option1CheckBox_Checked" Unchecked="Option1CheckBox_Unchecked" />
+                    <CheckBox x:Name="Option3CheckBox" Content="底部弹幕" 
+                              Checked="Option3CheckBox_Checked" Unchecked="Option3CheckBox_Unchecked" />
+                    <CheckBox x:Name="Option2CheckBox" Content="滚动弹幕" 
+                              Checked="Option2CheckBox_Checked" Unchecked="Option2CheckBox_Unchecked" IsChecked="True" />
+                    
+                </StackPanel>
+                <TextBox Name="danmakuInput" Grid.Column="1" Margin="5,5,5,5"
+                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  
+                         PlaceholderText="请输入弹幕..."></TextBox>
+                <Button Name="send" Grid.Column="2" Margin="5,5,5,5"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                        Content="发射>" FontSize="24" Click="send_Click"
+                        Background="RoyalBlue" Foreground="White"></Button>
+            </Grid>
+        </Grid>
+
+
+        <Grid Name="content"
             Grid.Column="0"
             Grid.RowSpan="3">
             <Grid.RowDefinitions>
