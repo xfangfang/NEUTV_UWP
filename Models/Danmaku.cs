@@ -8,6 +8,8 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
+using System.Xml;
 
 namespace NetEasePlayer_UWP.Models
 {
@@ -69,6 +71,24 @@ namespace NetEasePlayer_UWP.Models
             
             
            
+        }
+
+        public static List<Danmaku> Xml2DanmakuList(string xmlSourcePath)
+        {
+            List<Danmaku> tmpList = new List<Danmaku>();
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.Load(xmlSourcePath);
+            XmlNodeList nodelist = xmlDoc.SelectNodes("DanmakuList/Danmaku");
+            foreach (XmlNode node in nodelist)
+            {
+                Danmaku entity = new Danmaku();
+                entity.Mode = HttpUtility.HtmlEncode(node["type"].InnerText);
+                entity.Channel_id = HttpUtility.HtmlEncode(node["channel_id"].InnerText);
+                entity.Date = node["date"].InnerText.ToString();
+                entity.Text = node["content"].InnerText;
+                tmpList.Add(entity);
+            }
+            return tmpList;
         }
 
 
