@@ -45,15 +45,13 @@ namespace NetEasePlayer_UWP
     {
         Dictionary<String, List<One>> listMap = new Dictionary<string, List<One>>();
         Live live;
+        One playing;
+        bool isLive = true;
         TappedEventHandler listTapHandler;
         RightTappedEventHandler listRightTapHandler;
         static SemaphoreSlim _sem = new SemaphoreSlim(3);
 
-        
-        MediaPlayer mediaPlayer = new MediaPlayer();
-        MediaTimelineController mediaTimelineController = new MediaTimelineController();
         DanmakuPlayer danmakuPlayer;
-        
         
         public PlayerPage()
         {
@@ -100,6 +98,7 @@ namespace NetEasePlayer_UWP
         {
             base.OnNavigatedTo(e);
             live = (Live)e.Parameter;
+            isLive = true;
             Play(live.Url);
             InitListTapEvent();
 
@@ -113,6 +112,9 @@ namespace NetEasePlayer_UWP
                 listTapHandler = new TappedEventHandler((sender, e) =>
                 {
                     var o = ((One)((TextBlock)((ListBox)sender).SelectedItem).Tag);
+
+                    playing = o;isLive = false;
+
                     Play("http://media2.neu6.edu.cn/review/program-"
                             + o.start.ToString() + "-"
                             + o.end.ToString() + "-" + live.GetSimpleName() + ".m3u8");
@@ -151,8 +153,6 @@ namespace NetEasePlayer_UWP
                 container.Children.Clear();
             container.Children.Add(danmakuPlayer.container);
 
-            Debug.WriteLine(player.Width + " player " + player.Height);
-            Debug.WriteLine(tool.Width + " tool " + player.Height);
             video_player.MediaPlayer.Source = MediaSource.CreateFromUri( new Uri(url) );
 
             video_player.Visibility = Visibility.Visible;
@@ -355,10 +355,23 @@ namespace NetEasePlayer_UWP
             Debug.WriteLine("offset = " + offset.ToString());
             Debug.WriteLine(video_player.MediaPlayer.PlaybackSession.PlaybackState.ToString());
             Debug.WriteLine(video_player.MediaPlayer.PlaybackSession.Position.Seconds);
-            offset = 0;
+            //offset = 0;
+            DateTime beginTime; DateTime now = new DateTime(); TimeSpan date;
 
-            Danmaku danmaku = new Danmaku("23",mode,"20180428","02222",offset,danmakuText);
-            if( mode == "scroll")
+            if (isLive) date = now - new DateTime(now.Year,now.Month,now.Day);
+            else date = Converter.Instance.TimeConverter(playing.start) - new DateTime(now.Year, now.Month, now.Day) + video_player.MediaPlayer.PlaybackSession.Position; ;
+         
+            Danmaku danmaku = new Danmaku
+            {
+                Text = danmakuText,
+                Mode = mode,
+                Date = date,
+                Channel_id = live.Uid
+            };
+            Debug.WriteLine("post danmaku");
+            DanmakuManager.Instance.Add(danmaku);
+            Debug.WriteLine("post sc!");
+            if ( mode == "scroll")
             {
                 danmakuPlayer.AddScrollDanmaku(danmaku,true);
             }
