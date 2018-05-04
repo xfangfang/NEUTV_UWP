@@ -31,6 +31,28 @@ namespace NetEasePlayer_UWP.Models
         private DataContractJsonSerializer danmakuSerializer = new DataContractJsonSerializer(typeof(Danmaku));
         private DataContractJsonSerializer danmakuArraySerializer = new DataContractJsonSerializer(typeof(Danmaku[]));
 
+        public List<Danmaku> GetInitDanmaku()
+        {
+            List<Danmaku> ret = new List<Danmaku>();
+            Danmaku d1 = new Danmaku
+            {
+                Channel_id = "test",
+                Mode = "scroll",
+                Date = new DateTime(2018, 05, 05),
+                Text = "test1",
+                Offset = new TimeSpan(3)
+            };
+            Danmaku d2 = new Danmaku
+            {
+                Channel_id = "test",
+                Mode = "scroll",
+                Date = new DateTime(2018, 05, 05),
+                Text = "test222",
+                Offset = new TimeSpan(10)
+            };
+            ret.Add(d1);ret.Add(d2);
+            return ret;
+        }
         //向服务器 POST 弹幕
         public void AddDanmaku(Danmaku d)
         {

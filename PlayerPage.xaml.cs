@@ -52,15 +52,15 @@ namespace NetEasePlayer_UWP
         static SemaphoreSlim _sem = new SemaphoreSlim(3);
 
         DanmakuPlayer danmakuPlayer;
-        
+        TimeSpan nowPosition = new TimeSpan(0);
         public PlayerPage()
         {
             this.InitializeComponent();
 
             video_player.MediaPlayer.PlaybackSession.PlaybackStateChanged += myPlaybackSession_PlaybackStateChanged;
-            //video_player.MediaPlayer.PlaybackSession.PositionChanged += myPlaybackSession_PositionChangedAsync;
+            video_player.MediaPlayer.PlaybackSession.PositionChanged += myPlaybackSession_PositionChangedAsync;
         }
-        /* 能实时获取player position，可换另一种方式实现弹幕添加
+        // 能实时获取player position，可换另一种方式实现弹幕添加
         private async void myPlaybackSession_PositionChangedAsync(MediaPlaybackSession sender, object args)
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
@@ -68,10 +68,16 @@ namespace NetEasePlayer_UWP
             {
                 // Your UI update code goes here!
                 var currentPosion = video_player.MediaPlayer.PlaybackSession.Position;
+                currentPosion = (TimeSpan)currentPosion;
+                if(((int)currentPosion.TotalSeconds - (int)nowPosition.TotalSeconds) >= 1)
+                {
+                    danmakuPlayer.updateDanmaku(currentPosion);
+                }
+                
                 Debug.WriteLine(currentPosion);
             });
         }
-        */
+        
         //弹幕的播放和暂停
         private async void myPlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
         {
