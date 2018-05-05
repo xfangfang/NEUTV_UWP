@@ -14,8 +14,15 @@ using Windows.Web.Http;
 
 namespace NetEasePlayer_UWP
 {
+    public interface IDown
+    {
+        void Process();
+        void Start(int len);
+        void End();
+    }
     class DownManager
     {
+        static IDown down;
         private static async Task SaveVideoFile(StorageFolder tempDic,
            StorageFolder downloadDic, List<String> urlList)
         {
@@ -49,6 +56,10 @@ namespace NetEasePlayer_UWP
             //删除临时文件夹
             await tempDic.DeleteAsync();
             // Update the UI thread with the CoreDispatcher.
+            if(down != null)
+            {
+                down.End();
+            }
             CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
                         CoreDispatcherPriority.High,
                         new DispatchedHandler(() => {
@@ -58,8 +69,9 @@ namespace NetEasePlayer_UWP
 
         }
 
-        public static async Task DownloadShowAsync(One show,Live live)
+        public static async Task DownloadShowAsync(One show,Live live,IDown d)
         {
+            DownManager.down = d;
             // http://media2.neu6.edu.cn/review/program-1524520800-1524526860-chchd.m3u8
             var url = String.Format("http://media2.neu6.edu.cn/review/program-{0}-{1}-{2}.m3u8",
                 show.start, show.end, live.GetSimpleName());
@@ -80,7 +92,10 @@ namespace NetEasePlayer_UWP
                 var clipUrl = m.Result("${url}");
                 urlList.Add(clipUrl);
             }
-
+            if(down != null)
+            {
+                down.Start(urlList.Count);
+            }
             //创建临时文件夹
             var tempDic = await downloadDic.CreateFolderAsync("temp",
                 CreationCollisionOption.GenerateUniqueName);
@@ -121,9 +136,13 @@ namespace NetEasePlayer_UWP
                 await RandomAccessStream.CopyAndCloseAsync(sourceStream, destinationStream);
             }
             Debug.WriteLine("end " + tsRe.Match(videoUrl).Result("${ts}"));
+            if(down != null)
+            {
+                down.Process();
+            }
         }
 
-        private static async Task ShowDialog(String content)
+        public static async Task ShowDialog(String content)
         {
             MessageDialog msg = new MessageDialog(content);
             await msg.ShowAsync();

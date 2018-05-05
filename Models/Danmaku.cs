@@ -57,9 +57,12 @@ namespace NetEasePlayer_UWP.Models
             return ret;
         }
         //向服务器 POST 弹幕
-        public void AddDanmaku(Danmaku d)
+        public async void AddDanmakuAsync(Danmaku d)
         {
             string url = uri + "/upload_danmaku";
+            HttpClient httpClient = new HttpClient();
+            
+
             var request = (HttpWebRequest)WebRequest.Create(url);
 
             var postData = "channel_id="+d.Channel_id.ToString();
@@ -82,6 +85,8 @@ namespace NetEasePlayer_UWP.Models
                 var response = (HttpWebResponse)request.GetResponse();
 
                 var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+                //var response = await httpClient.PostAsync(url, HttpContent(data));
+                //var res = await response.Content.ReadAsStringAsync();
             }
             catch (Exception e)
             {
@@ -158,7 +163,7 @@ namespace NetEasePlayer_UWP.Models
 
             return danmakuArraySerializer.ReadObject(stream) as Danmaku[];
         }
-      public static List<Danmaku> Xml2DanmakuList(string xmlSourceStr)
+        public static List<Danmaku> Xml2DanmakuList(string xmlSourceStr)
         {
             List<Danmaku> tmpList = new List<Danmaku>();
             XmlDocument xmlDoc = new XmlDocument();

@@ -69,12 +69,15 @@ namespace NetEasePlayer_UWP
                 // Your UI update code goes here!
                 var currentPosion = video_player.MediaPlayer.PlaybackSession.Position;
                 currentPosion = (TimeSpan)currentPosion;
-                if(((int)currentPosion.TotalSeconds - (int)nowPosition.TotalSeconds) >= 1)
+                if(((int)currentPosion.TotalSeconds - (int)nowPosition.TotalSeconds) == 1)
                 {
                     nowPosition = currentPosion;
                     danmakuPlayer.updateDanmaku(currentPosion);
                 }
-                
+                else if((int)System.Math.Abs(((int)currentPosion.TotalSeconds - (int)nowPosition.TotalSeconds) )>= 3) {
+                    danmakuPlayer.storyBoards.Clear();
+                    danmakuPlayer.updateDanmaku(currentPosion);
+                }
                 //Debug.WriteLine((int)currentPosion.TotalSeconds);
                // Debug.WriteLine((int)nowPosition.TotalSeconds);
             });
@@ -129,18 +132,7 @@ namespace NetEasePlayer_UWP
                 });
                 see_back_list.Tapped += listTapHandler;
             }
-            if(listRightTapHandler == null)
-            {
-                listRightTapHandler = new RightTappedEventHandler((sender, e) =>
-                {
-                    if (((ListBox)sender).SelectedItem != null)
-                    {
-                        var o = ((One)((TextBlock)((ListBox)sender).SelectedItem).Tag);
-                        DownManager.DownloadShowAsync(o,live);
-                    }
-                });
-                see_back_list.RightTapped += listRightTapHandler;
-            }
+            
         }
 
 
@@ -386,7 +378,7 @@ namespace NetEasePlayer_UWP
                 Offset = offset
             };
             Debug.WriteLine("post danmaku");
-            DanmakuManager.Instance.AddDanmaku(danmaku);
+            DanmakuManager.Instance.AddDanmakuAsync(danmaku);
 
             Debug.WriteLine("post sc!");
             if ( mode == "scroll")
@@ -413,6 +405,7 @@ namespace NetEasePlayer_UWP
             bool isFull = view.IsFullScreenMode;
             if (!isFull)
             {
+                danmakuPlayer.ViewHeight = 500;
                 tool.Visibility = Visibility.Visible;
                 video_player.SetValue(Grid.RowProperty, 0);
                 video_player.SetValue(Grid.RowSpanProperty, 2);
@@ -425,6 +418,7 @@ namespace NetEasePlayer_UWP
             }
             else
             {
+                danmakuPlayer.ViewHeight = 725;
                 video_player.SetValue(Grid.RowProperty, 0);
                 video_player.SetValue(Grid.RowSpanProperty, 3);
                 tool.Visibility = Visibility.Collapsed;
@@ -447,7 +441,7 @@ namespace NetEasePlayer_UWP
         private void customMTC_Downloaded(object sender, EventArgs e)
         {
             Debug.WriteLine("click Download");
-            DownManager.DownloadShowAsync(playing, live);
+            DownManager.DownloadShowAsync(playing, live,new down(downProgress));
         }
         /// <summary>
         /// xfang 直播
@@ -457,7 +451,9 @@ namespace NetEasePlayer_UWP
         private void customMTC_Lived(object sender, EventArgs e)
         {
             Debug.WriteLine("click goLive");
+
             Play(live.Url);
+            
         }
 
         private void customMTC_DanmakuOpened(object sender, EventArgs e)
@@ -469,6 +465,42 @@ namespace NetEasePlayer_UWP
             {
                 container.Visibility = Visibility.Collapsed;
             }
+        }
+    }
+    class down : IDown
+    {
+        TextBlock text;
+        public down(TextBlock t)
+        {
+            this.text = t;
+        }
+        static int index = 0;
+        static int len = 0;
+        public void Start(int len)
+        {
+            down.len = len;
+            down.index = 0;
+            CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                CoreDispatcherPriority.High,
+                new DispatchedHandler(() =>
+                {
+                    DownManager.ShowDialog("开始下载");
+                }));
+                
+        }
+        public void Process()
+        {
+            down.index++;
+            this.text.Text = String.Format("%d/%d",down.index,down.len);
+        }
+        public void End()
+        {
+            CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+            CoreDispatcherPriority.High,
+            new DispatchedHandler(() => {
+                DownManager.ShowDialog("下载完毕");
+            })
+);
         }
     }
 }
