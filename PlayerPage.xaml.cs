@@ -160,8 +160,12 @@ namespace NetEasePlayer_UWP
             if (isLive)
                 danmakuPlayer = new DanmakuPlayer();
             else
+            {
+                Debug.WriteLine("new playback player");
                 danmakuPlayer = new DanmakuPlayer(Converter.Instance.TimeConverter(playing.start),
                                                   Converter.Instance.TimeConverter(playing.end), live.Name);
+            }
+                
             if (container.Children != null)
                 container.Children.Clear();
             container.Children.Add(danmakuPlayer.container);
@@ -443,6 +447,7 @@ namespace NetEasePlayer_UWP
         private void customMTC_Downloaded(object sender, EventArgs e)
         {
             Debug.WriteLine("click Download");
+            DownManager.DownloadShowAsync(playing, live);
         }
         /// <summary>
         /// xfang 直播
@@ -452,6 +457,7 @@ namespace NetEasePlayer_UWP
         private void customMTC_Lived(object sender, EventArgs e)
         {
             Debug.WriteLine("click goLive");
+            Play(live.Url);
         }
 
         private void customMTC_DanmakuOpened(object sender, EventArgs e)

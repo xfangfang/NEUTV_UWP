@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -9,6 +10,8 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
+using System.Xml;
 
 namespace NetEasePlayer_UWP.Models
 {
@@ -117,10 +120,25 @@ namespace NetEasePlayer_UWP.Models
 
                 var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
 
+
                 //解析xml获得List<Danmaku>
                 //....
                 //计算每个Danmaku.offset
-
+                ret =  Xml2DanmakuList(responseString.ToString());
+                if (ret != null)
+                {
+                    Debug.WriteLine("parse danmaku is not null ");
+                    foreach (var item in ret)
+                    {
+                        Debug.WriteLine(item.Text);
+                        item.Offset = item.Date - begin;
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine("daikun zz");
+                }
+                
 
                 Debug.WriteLine(responseString.ToString());
             }
@@ -139,6 +157,27 @@ namespace NetEasePlayer_UWP.Models
             var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
             return danmakuArraySerializer.ReadObject(stream) as Danmaku[];
+        }
+      public static List<Danmaku> Xml2DanmakuList(string xmlSourceStr)
+        {
+            List<Danmaku> tmpList = new List<Danmaku>();
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlSourceStr);
+            XmlNodeList nodelist = xmlDoc.SelectNodes("DanmakuList/Danmaku");
+            foreach (XmlNode node in nodelist)
+            {
+                Danmaku entity = new Danmaku();
+                entity.Mode = HttpUtility.HtmlEncode(node["type"].InnerText);
+                entity.Channel_id = HttpUtility.HtmlEncode(node["channel_id"].InnerText);
+
+                DateTimeFormatInfo dtFormat = new DateTimeFormatInfo();
+                dtFormat.ShortDatePattern = "yyyy-MM-dd hh:mm:ss";
+
+                entity.Date = Convert.ToDateTime(node["date"].InnerText, dtFormat);
+                entity.Text = node["content"].InnerText;
+                tmpList.Add(entity);
+            }
+            return tmpList;
         }
     }
 }
