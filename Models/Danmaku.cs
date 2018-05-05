@@ -97,13 +97,26 @@ namespace NetEasePlayer_UWP.Models
                 var response = (HttpWebResponse)request.GetResponse();
 
                 var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
-        
+
 
                 //解析xml获得List<Danmaku>
                 //....
                 //计算每个Danmaku.offset
-
-
+                ret =  Xml2DanmakuList(responseString.ToString());
+                if (ret != null)
+                {
+                    Debug.WriteLine("parse danmaku is not null ");
+                    foreach (var item in ret)
+                    {
+                        Debug.WriteLine(item.Text);
+                        item.Offset = item.Date - begin;
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine("daikun zz");
+                }
+                
 
                 Debug.WriteLine(responseString.ToString());
             }
