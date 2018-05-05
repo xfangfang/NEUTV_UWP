@@ -60,12 +60,7 @@ namespace NetEasePlayer_UWP
             {
                 down.End();
             }
-            CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
-                        CoreDispatcherPriority.High,
-                        new DispatchedHandler(() => {
-                            ShowDialog("下载完毕");
-                        })
-            );
+            
 
         }
 
@@ -105,18 +100,25 @@ namespace NetEasePlayer_UWP
             TaskFactory fac = new TaskFactory();
 
             Debug.WriteLine("start all");
-       
-            Task.Run(() =>
+            try
             {
-                Parallel.ForEach<string>(urlList, new ParallelOptions() { MaxDegreeOfParallelism = 10 }, 
-                    videoUrl =>{
-                        Act(videoUrl, httpClient, tempDic).Wait();
-                    });
-            }).ContinueWith((obj) =>
+                Task.Run(() =>
+                {
+                    Parallel.ForEach<string>(urlList, new ParallelOptions() { MaxDegreeOfParallelism = 10 },
+                        videoUrl => {
+                            Act(videoUrl, httpClient, tempDic).Wait();
+                        });
+                }).ContinueWith((obj) =>
+                {
+                    Debug.WriteLine("end all");
+                    SaveVideoFile(tempDic, downloadDic, urlList);
+                });
+            }
+            catch (Exception e)
             {
-                Debug.WriteLine("end all");
-                SaveVideoFile(tempDic, downloadDic, urlList);
-            });
+
+            }
+           
 
         }
 

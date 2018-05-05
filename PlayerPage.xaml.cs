@@ -484,6 +484,7 @@ namespace NetEasePlayer_UWP
                 CoreDispatcherPriority.High,
                 new DispatchedHandler(() =>
                 {
+                    this.text.Text = 0+"/"+len;
                     DownManager.ShowDialog("开始下载");
                 }));
                 
@@ -491,7 +492,12 @@ namespace NetEasePlayer_UWP
         public void Process()
         {
             down.index++;
-            this.text.Text = String.Format("%d/%d",down.index,down.len);
+            CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+               CoreDispatcherPriority.High,
+               new DispatchedHandler(() =>
+               {
+                   this.text.Text = String.Format("{0}/{1}", down.index, down.len);
+               }));
         }
         public void End()
         {
@@ -499,6 +505,7 @@ namespace NetEasePlayer_UWP
             CoreDispatcherPriority.High,
             new DispatchedHandler(() => {
                 DownManager.ShowDialog("下载完毕");
+                this.text.Text = "";
             })
 );
         }
