@@ -30,6 +30,9 @@
                                                         IsFullWindowButtonVisible="False"
                                                         IsCompact="False"
                                                         Fulled="customMTC_Fulled"
+                                                        Downloaded="customMTC_Downloaded"
+                                                        Lived="customMTC_Lived"
+                                                        DanmakuOpened="customMTC_DanmakuOpened"
                                                         >
                     </local:CustomMediaTransportControls>
                 </MediaPlayerElement.TransportControls>
