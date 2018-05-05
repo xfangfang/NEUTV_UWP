@@ -17,59 +17,185 @@ namespace NetEasePlayer_UWP.Models
     class DanmakuPlayer
     {
         public int lineHeight = 25;
+        public int ViewHeight = 500;
+        public int topLineLimit = 3, bottomLineLimit = 3, scrollLineLimit = 5;
         public bool isPause;
         public Grid container = new Grid();
         public MediaPlayer mediaPlayer = new MediaPlayer();
         public MediaTimelineController mediaTimelineController = new MediaTimelineController();
         public List<Danmaku> danmakus;
         public List<Storyboard> storyBoards = new List<Storyboard>();
-        public DanmakuManager danmakuManager = new DanmakuManager();
+        //public DanmakuManager danmakuManager = new DanmakuManager();
 
-        public bool[] isOccupied, isTopOccupied, isBottomOccupied;
-        public DanmakuPlayer()
+        public class DanmakuPosition
         {
-            isPause = false;
-            if(this.danmakus!= null)
-                this.danmakus.Clear();
-            if(this.container != null)
-                this.container.Children.Clear();
-            this.danmakus = danmakuManager.GetInitDanmaku();
-
-            foreach (Danmaku item in danmakus)
+            public int row;
+            public DateTime Date;
+            public DanmakuPosition(int _row,DateTime _date)
             {
-               
-                if(item.mode == "scroll")
+                row = _row;
+                Date = _date;
+            }
+        }
+
+        public List<DanmakuPosition> topY = new List<DanmakuPosition> (), botY = new List<DanmakuPosition>(), scrY = new List<DanmakuPosition>();
+        #region getDanmakuYposition
+        public int GetY(Danmaku d, string mode)
+        {
+            int ret = 0;
+            if(mode == "scroll"){
+                ret = 0;
+                if (scrY != null)
                 {
-                    this.AddScrollDanmaku(item,false);
-                }
-                else if(item.mode == "top")
-                {
-                    this.AddTopDanmakuAsync(item,false);
+                    for (int i = scrY.Count - 1; i >= 0; i--)
+                    {
+                        if (d.Date >= scrY[i].Date)
+                        {
+                            int r = (scrY[i].row + 1) % scrollLineLimit;
+                            scrY.Add(new DanmakuPosition(r, d.Date));
+                            scrY = scrY.OrderBy(s => s.Date).ToList();
+                            ret = r * lineHeight ; break;
+                        }
+                    }
                 }
                 else
                 {
-                    this.AddBottomDanmaku(item,false);
+                    scrY.Add(new DanmakuPosition(0, d.Date));
                 }
             }
-            Debug.WriteLine("danmakus size"+danmakus.Capacity);
-            Debug.WriteLine("storyboard size" + storyBoards.Capacity);
+            else if(mode == "top")
+            {
+                ret = 0;
+                if (topY != null)
+                {
+                    for (int  i = topY.Count-1;i>=0;i--)
+                    {
+                        if (d.Date >= topY[i].Date)
+                        {
+                            int r = (topY[i].row + 1) % topLineLimit;
+                            topY.Add(new DanmakuPosition(r, d.Date));
+                            topY = topY.OrderBy(s => s.Date).ToList();
+                            ret = r * lineHeight; break;
+                        }
+                    }
+                }
+                else
+                {
+                    topY.Add(new DanmakuPosition(0, d.Date));
+                }
+            }
+            else
+            {
+                ret = ViewHeight - lineHeight;
+                if (botY != null)
+                {
+                    for (int i = botY.Count - 1; i >= 0; i--)
+                    {
+                        if (d.Date >= botY[i].Date)
+                        {
+                            int r = (botY[i].row + 1) % bottomLineLimit;
+                            botY.Add(new DanmakuPosition(r, d.Date));
+                            botY = botY.OrderBy(s => s.Date).ToList();
+                            ret = ViewHeight - r * lineHeight- lineHeight; break;
+                        }
+                    }
+                }
+                else
+                {
+                    botY.Add(new DanmakuPosition(0, d.Date));
+                }
+            }
+            return ret;
+        }
+        #endregion
+        public DanmakuPlayer(DateTime begin,DateTime end,string channel_id)
+        {
+            #region init
+            isPause = false;
+            if (topY != null) topY.Clear();
+            topY.Add(new DanmakuPosition(0, new DateTime(1998, 07, 15)));
+            if (botY != null) botY.Clear();
+            botY.Add(new DanmakuPosition(0, new DateTime(1998, 07, 15)));
+            if (scrY != null) scrY.Clear();
+            scrY.Add(new DanmakuPosition(0, new DateTime(1998, 07, 15)));
+
+            if (this.danmakus != null)
+                this.danmakus.Clear();
+            if (this.container != null)
+                this.container.Children.Clear();
+            this.danmakus = DanmakuManager.Instance.QueryDanmaku(channel_id, begin, end);
+            #endregion
+            if (danmakus != null)
+            {
+                foreach (Danmaku item in danmakus)
+                {
+                    if (item.Mode == "scroll")
+                    {
+                        this.AddScrollDanmaku(item, false);
+                    }
+                    else if (item.Mode == "top")
+                    {
+                        this.AddTopDanmakuAsync(item, false);
+                    }
+                    else
+                    {
+                        this.AddBottomDanmaku(item, false);
+                    }
+                }
+            }
+        }
+        public DanmakuPlayer()
+        {
+            #region init
+            isPause = false;
+            if(topY != null) topY.Clear();
+            topY.Add(new DanmakuPosition(0, new DateTime(1998, 07, 15)));
+            if(botY != null) botY.Clear();
+            botY.Add(new DanmakuPosition(0, new DateTime(1998, 07, 15)));
+            if(scrY != null) scrY.Clear();
+            scrY.Add(new DanmakuPosition(0, new DateTime(1998, 07, 15)));
+
+            if (this.danmakus!= null)
+                this.danmakus.Clear();
+            if(this.container != null)
+                this.container.Children.Clear();
+            //this.danmakus = danmakuManager.GetInitDanmaku();
+            #endregion
+            if (danmakus != null)
+            {
+                foreach (Danmaku item in danmakus)
+                {
+                    if (item.Mode == "scroll")
+                    {
+                        this.AddScrollDanmaku(item, false);
+                    }
+                    else if (item.Mode == "top")
+                    {
+                        this.AddTopDanmakuAsync(item, false);
+                    }
+                    else
+                    {
+                        this.AddBottomDanmaku(item, false);
+                    }
+                }
+            }
         }
         #region Add Danmaku
         public void AddScrollDanmaku(Danmaku danmaku,bool isNewDanmaku)
         {
             double xx, yy;
-            xx = 400; yy = 200;
+            xx = 400; yy = GetY(danmaku,danmaku.Mode) ;
             Grid danmakuGrid = new Grid
             {
                 Margin = new Thickness(0, yy, 0, 0)
             };
             TextBlock tb = new TextBlock
             {
-                Text = danmaku.text,
+                Text = danmaku.Text,
                 FontSize = 24,
                 Foreground = new SolidColorBrush(Colors.White),
             };
- 
+            
             danmakuGrid.Children.Add(tb);
             TranslateTransform c = new TranslateTransform();
             danmakuGrid.RenderTransform = c;
@@ -101,18 +227,20 @@ namespace NetEasePlayer_UWP.Models
             }
             else
             {
-                sb.BeginTime = TimeSpan.FromSeconds(danmaku.offset);
+                //sb.BeginTime = TimeSpan.FromSeconds(danmaku.offset);
+                sb.BeginTime = TimeSpan.FromSeconds(danmaku.Offset.TotalSeconds);
             }
             storyBoards.Add(sb);
 
-            if (!danmakus.Contains(danmaku)) danmakus.Add(danmaku);
+            if (danmakus!=null&&!danmakus.Contains(danmaku)) danmakus.Add(danmaku);
 
             sb.Begin();
-            Debug.WriteLine(danmaku.text);
+            Debug.WriteLine(danmaku.Text);
         }
         public async void AddTopDanmakuAsync(Danmaku danmaku,bool isNewDanmaku)
         {
-            double xx, yy=20;
+            int xx, yy= GetY(danmaku, danmaku.Mode);
+            Debug.WriteLine("getYY=" + yy);
             int offset;
             if (isNewDanmaku)
             {
@@ -120,17 +248,16 @@ namespace NetEasePlayer_UWP.Models
             }
             else
             {
-                offset = danmaku.offset;
+                offset = (int)danmaku.Offset.TotalSeconds;
             }
             Grid danmakuGrid = new Grid
             {
-                Margin = new Thickness(0, 0, 0, 0),
+                Margin = new Thickness(0, yy, 0, 0),
                 HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Top
             };
             TextBlock tb = new TextBlock
             {
-                Text = danmaku.text,
+                Text = danmaku.Text,
                 FontSize = 24,
                 Foreground = new SolidColorBrush(Colors.White)
             };
@@ -160,7 +287,7 @@ namespace NetEasePlayer_UWP.Models
         }
         public async void AddBottomDanmaku(Danmaku danmaku,bool isNewDanmaku)
         {
-            double xx, yy = 350;
+            double xx, yy = GetY(danmaku, danmaku.Mode);
             int offset;
             if (isNewDanmaku)
             {
@@ -168,17 +295,17 @@ namespace NetEasePlayer_UWP.Models
             }
             else
             {
-                offset = danmaku.offset;
+                offset = (int)danmaku.Offset.TotalSeconds;// danmaku.offset;
             }
             Grid danmakuGrid = new Grid
             {
                 Margin = new Thickness(0, yy, 0, 0),
                 HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Bottom
+                
             };
             TextBlock tb = new TextBlock
             {
-                Text = danmaku.text,
+                Text = danmaku.Text,
                 FontSize = 24,
                 Foreground = new SolidColorBrush(Colors.White)
             };
