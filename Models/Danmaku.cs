@@ -34,10 +34,35 @@ namespace NetEasePlayer_UWP.Models
         private DataContractJsonSerializer danmakuSerializer = new DataContractJsonSerializer(typeof(Danmaku));
         private DataContractJsonSerializer danmakuArraySerializer = new DataContractJsonSerializer(typeof(Danmaku[]));
 
+        public List<Danmaku> GetInitDanmaku()
+        {
+            List<Danmaku> ret = new List<Danmaku>();
+            Danmaku d1 = new Danmaku
+            {
+                Channel_id = "test",
+                Mode = "scroll",
+                Date = new DateTime(2018, 05, 05),
+                Text = "test1",
+                Offset = TimeSpan.FromSeconds(3)
+            };
+            Danmaku d2 = new Danmaku
+            {
+                Channel_id = "test",
+                Mode = "scroll",
+                Date = new DateTime(2018, 05, 05),
+                Text = "test222",
+                Offset = TimeSpan.FromSeconds(10)
+            };
+            ret.Add(d1);ret.Add(d2);
+            return ret;
+        }
         //向服务器 POST 弹幕
-        public void AddDanmaku(Danmaku d)
+        public async void AddDanmakuAsync(Danmaku d)
         {
             string url = uri + "/upload_danmaku";
+            HttpClient httpClient = new HttpClient();
+            
+
             var request = (HttpWebRequest)WebRequest.Create(url);
 
             var postData = "channel_id="+d.Channel_id.ToString();
@@ -60,6 +85,8 @@ namespace NetEasePlayer_UWP.Models
                 var response = (HttpWebResponse)request.GetResponse();
 
                 var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+                //var response = await httpClient.PostAsync(url, HttpContent(data));
+                //var res = await response.Content.ReadAsStringAsync();
             }
             catch (Exception e)
             {
@@ -136,7 +163,7 @@ namespace NetEasePlayer_UWP.Models
 
             return danmakuArraySerializer.ReadObject(stream) as Danmaku[];
         }
-      public static List<Danmaku> Xml2DanmakuList(string xmlSourceStr)
+        public static List<Danmaku> Xml2DanmakuList(string xmlSourceStr)
         {
             List<Danmaku> tmpList = new List<Danmaku>();
             XmlDocument xmlDoc = new XmlDocument();

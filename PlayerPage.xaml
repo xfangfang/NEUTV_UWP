@@ -74,13 +74,19 @@
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <ComboBox
+            <StackPanel
+                Orientation="Horizontal"
+                Grid.Row="0">
+                <ComboBox
                 Name="select_date_combobox"
-                Grid.Row="0"
-                Width="{Binding ElementName=content,Path=Width}"
                 >
-                
-            </ComboBox>
+
+                </ComboBox>
+                <TextBlock Name="downProgress">neu</TextBlock>
+
+
+            </StackPanel>
+
             <ListBox
                 Name="see_back_list"
                 Grid.Row="1">
