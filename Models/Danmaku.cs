@@ -66,9 +66,6 @@ namespace NetEasePlayer_UWP.Models
                 Debug.WriteLine(e.ToString());
                 throw;
             }
-            
-            
-           
         }
 
 

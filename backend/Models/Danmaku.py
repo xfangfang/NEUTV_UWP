@@ -12,7 +12,7 @@ from .Model import Model
 
 class Danmaku(Model):
 
-    def __init__(self, channel_id = u'default', content = u'default danmaku content', date = u'1111-11-11 00:00:00', type = u'rolling'):
+    def __init__(self, channel_id = u'default', content = u'default danmaku content', date = u'1111-11-11 00:00:00', type = u'scroll'):
         self.channel_id = channel_id
         self.content = content
         self.date = date
@@ -71,9 +71,9 @@ class Danmaku(Model):
 
 
 def create_danmaku_from_args(
-    channel_id = u'default', content = u'default danmaku content', date = '1111-11-11 00:00:00', type = u'rolling'
+    channel_id = u'default', content = u'default danmaku content', date = '1111-11-11 00:00:00', type = u'scroll'
     ):
-    return Danmaku(channel_id, content, date)
+    return Danmaku(channel_id, content, date, type)
 
 def create_danmaku_from_tuple(tp):
-    return Danmaku(tp[0], tp[1], tp[2])
+    return Danmaku(tp[0], tp[1], tp[2], tp[3])
