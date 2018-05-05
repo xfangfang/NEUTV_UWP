@@ -79,7 +79,6 @@ namespace NetEasePlayer_UWP.Models
             {
 
             }
-          
 
         }
         //从服务器请求弹幕
