@@ -105,6 +105,7 @@ namespace NetEasePlayer_UWP.Models
                     botY.Add(new DanmakuPosition(0, d.Date));
                 }
             }
+            Debug.WriteLine("getY===" + ret+"view Height = "+ViewHeight);
             return ret;
         }
         #endregion
@@ -123,8 +124,14 @@ namespace NetEasePlayer_UWP.Models
                 this.danmakus.Clear();
             if (this.container != null)
                 this.container.Children.Clear();
-            this.danmakus = DanmakuManager.Instance.QueryDanmaku(channel_id, begin, end);
+            this.danmakus = DanmakuManager.Instance.QueryDanmaku(channel_id,begin,end);
+            
+            foreach (var item in danmakus)
+            {
+                Debug.WriteLine("init danmaku offset=" + (int)item.Offset.TotalSeconds);
+            }
             #endregion
+            /*
             if (danmakus != null)
             {
                 foreach (Danmaku item in danmakus)
@@ -142,7 +149,7 @@ namespace NetEasePlayer_UWP.Models
                         this.AddBottomDanmaku(item, false);
                     }
                 }
-            }
+            }*/
         }
         public DanmakuPlayer()
         {
@@ -181,6 +188,35 @@ namespace NetEasePlayer_UWP.Models
             }
         }
         #region Add Danmaku
+        public void updateDanmaku(TimeSpan currentP)
+        {
+            if (danmakus != null)
+            {
+                foreach (var item in danmakus)
+                {
+                    Debug.WriteLine("items:" + (int)item.Offset.TotalSeconds + " currentps:" + (int)currentP.TotalSeconds);
+                    Debug.WriteLine("items danmaku type:" + item.Mode);
+                    if ((int)item.Offset.TotalSeconds == (int)currentP.TotalSeconds)
+                    {
+                        Debug.WriteLine("begin add danmaku"+item.Offset.TotalSeconds);
+                        Debug.WriteLine("items danmaku type:" + item.Mode);
+                        if (item.Mode == "scroll")
+                        {
+                            this.AddScrollDanmaku(item, true);
+                        }
+                        else if (item.Mode == "top")
+                        {
+                            this.AddTopDanmakuAsync(item, true);
+                        }
+                        else
+                        {
+                            this.AddBottomDanmaku(item, true);
+                        }
+                    }
+                }
+            }
+            
+        }
         public void AddScrollDanmaku(Danmaku danmaku,bool isNewDanmaku)
         {
             double xx, yy;

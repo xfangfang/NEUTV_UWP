@@ -22,5 +22,9 @@ namespace NetEasePlayer_UWP
         {
             this.Livelist.Add(live);
         }
+        public void RemoveLive(Live live)
+        {
+            this.Livelist.Remove(live);
+        }
     }
 }
