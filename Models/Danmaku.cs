@@ -61,75 +61,53 @@ namespace NetEasePlayer_UWP.Models
         {
             string url = uri + "/upload_danmaku";
             HttpClient httpClient = new HttpClient();
-            
 
-            var request = (HttpWebRequest)WebRequest.Create(url);
+            var content = new FormUrlEncodedContent(new[]
+           {
+                new KeyValuePair<string, string>("channel_id", d.Channel_id.ToString()),
+                new KeyValuePair<string, string>("type", d.Mode.ToString()),
+                new KeyValuePair<string, string>("date", d.Date.ToString("yyyy-MM-dd HH:mm:ss")),
+                new KeyValuePair<string, string>("danmaku", d.Text.ToString()),
 
-            var postData = "channel_id="+d.Channel_id.ToString();
-                postData += "&type=" + d.Mode.ToString();
-                postData += "&date=" + d.Date.ToString("yyyy-MM-dd HH:mm:ss");
-                postData += "&danmaku=" + d.Text.ToString();
-            var data = Encoding.UTF8.GetBytes(postData);
 
-            request.Method = "POST";
-            request.ContentType = "application/x-www-form-urlencoded";
-            request.ContentLength = data.Length;
-
-            using (var stream = request.GetRequestStream())
-            {
-                stream.Write(data, 0, data.Length);
-            }
-
+            });
             try
             {
-                var response = (HttpWebResponse)request.GetResponse();
+                var res = await httpClient.PostAsync(url, content);
 
-                var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
-                //var response = await httpClient.PostAsync(url, HttpContent(data));
-                //var res = await response.Content.ReadAsStringAsync();
-            }
-            catch (Exception e)
+            }catch(Exception e)
             {
-                Debug.WriteLine(e.ToString());
-                throw;
+
             }
-            
+          
+
         }
         //从服务器请求弹幕
         // POST channel_id&beg_date&end_date
         // 解析 返回的xml文件
-        public List<Danmaku> QueryDanmaku(String channel_id, DateTime begin, DateTime end)
+        public async Task<List<Danmaku>> QueryDanmaku(String channel_id, DateTime begin, DateTime end)
         {
             List<Danmaku> ret = new List<Danmaku>();
             string url = uri + "/download_danmaku";
-            var request = (HttpWebRequest)WebRequest.Create(url);
+            HttpClient httpClient = new HttpClient();
 
-            var postData = "channel_id=" + channel_id;
-            postData += "&beg_date=" + begin.ToString("yyyy-MM-dd HH:mm:ss");
-            postData += "&end_date=" + end.ToString("yyyy-MM-dd HH:mm:ss"); 
-            
-            var data = Encoding.UTF8.GetBytes(postData);
+            var content = new FormUrlEncodedContent(new[]
+           {
 
-            request.Method = "POST";
-            request.ContentType = "application/x-www-form-urlencoded";
-            request.ContentLength = data.Length;
+                new KeyValuePair<string, string>("channel_id", channel_id),
+                new KeyValuePair<string, string>("beg_date", begin.ToString("yyyy-MM-dd HH:mm:ss")),
+                new KeyValuePair<string, string>("end_date", end.ToString("yyyy-MM-dd HH:mm:ss"))
 
-            using (var stream = request.GetRequestStream())
-            {
-                stream.Write(data, 0, data.Length);
-            }
-
+            });
             try
             {
-                var response = (HttpWebResponse)request.GetResponse();
-
-                var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
-
+                var res = await httpClient.PostAsync(url, content);
+                var response = await res.Content.ReadAsStringAsync();
 
                 //解析xml获得List<Danmaku>
                 //....
                 //计算每个Danmaku.offset
-                ret =  Xml2DanmakuList(responseString.ToString());
+                ret = Xml2DanmakuList(response);
                 if (ret != null)
                 {
                     Debug.WriteLine("parse danmaku is not null ");
@@ -143,9 +121,9 @@ namespace NetEasePlayer_UWP.Models
                 {
                     Debug.WriteLine("daikun zz");
                 }
-                
 
-                Debug.WriteLine(responseString.ToString());
+
+                Debug.WriteLine(response);
             }
             catch (Exception e)
             {

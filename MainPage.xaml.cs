@@ -90,6 +90,7 @@ namespace NetEasePlayer_UWP
         public void AddItem(PlayList playList)
         {
             GridView g = new GridView();
+            g.HorizontalAlignment = HorizontalAlignment.Center;
 
             PivotItem pi1 = new PivotItem
             {
@@ -172,6 +173,7 @@ namespace NetEasePlayer_UWP
         public GridView createGridView(PlayList playList) //单独创建一个名为我的收藏的gridview，返回值为这个gridview
         {
             grid = new GridView();
+            grid.HorizontalAlignment = HorizontalAlignment.Center;
             PivotItem pi1 = new PivotItem
             {
                 Header = playList.Name,

@@ -124,32 +124,21 @@ namespace NetEasePlayer_UWP.Models
                 this.danmakus.Clear();
             if (this.container != null)
                 this.container.Children.Clear();
-            this.danmakus = DanmakuManager.Instance.QueryDanmaku(channel_id,begin,end);
-            
-            foreach (var item in danmakus)
-            {
-                Debug.WriteLine("init danmaku offset=" + (int)item.Offset.TotalSeconds);
-            }
+            GetDanmaku( begin, end, channel_id);
             #endregion
-            /*
-            if (danmakus != null)
+
+        }
+        private async void GetDanmaku(DateTime begin, DateTime end, string channel_id)
+        {
+            try
             {
-                foreach (Danmaku item in danmakus)
-                {
-                    if (item.Mode == "scroll")
-                    {
-                        this.AddScrollDanmaku(item, false);
-                    }
-                    else if (item.Mode == "top")
-                    {
-                        this.AddTopDanmakuAsync(item, false);
-                    }
-                    else
-                    {
-                        this.AddBottomDanmaku(item, false);
-                    }
-                }
-            }*/
+                this.danmakus = await DanmakuManager.Instance.QueryDanmaku(channel_id, begin, end);
+
+            }
+            catch
+            {
+
+            }
         }
         public DanmakuPlayer()
         {
