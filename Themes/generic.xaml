@@ -735,6 +735,15 @@
                                                     <SymbolIcon x:Name="RepeatSymbol" Symbol="RepeatAll" />
                                                 </AppBarToggleButton.Icon>
                                             </AppBarToggleButton>
+                                            <AppBarToggleButton x:Name="myDanmakuButton"
+                                                                Style='{StaticResource AppBarToggleButtonStyle}'
+                                                                IsChecked="True"
+                                                                Content="弹幕"
+                                                                >
+                                                <AppBarToggleButton.Icon>
+                                                    <SymbolIcon x:Name="myDanmakuSymbol" Symbol="Character"/>
+                                                </AppBarToggleButton.Icon>
+                                            </AppBarToggleButton>
                                             <AppBarButton x:Name='ZoomButton'
                                                 Style='{StaticResource AppBarButtonStyle}'
                                                 MediaTransportControlsHelper.DropoutOrder='9'>
@@ -756,6 +765,26 @@
                                                     <SymbolIcon x:Name="FullWindowSymbol" Symbol="FullScreen" />
                                                 </AppBarButton.Icon>
                                             </AppBarButton>
+                                            <AppBarButton x:Name='myLiveButton'
+                                                            Style='{StaticResource AppBarButtonStyle}'
+                                                            Label="myLiveButton"
+                                                            VerticalAlignment="Center"
+                                                            HorizontalAlignment="Left"
+                                                >
+                                                <AppBarButton.Icon>
+                                                    <SymbolIcon x:Name="myLiveSymbol" Symbol="Link" />
+                                                </AppBarButton.Icon>
+                                            </AppBarButton>
+                                            <AppBarButton x:Name='myDownloadButton'
+                                                            Style='{StaticResource AppBarButtonStyle}'
+                                                            Label="myDownloadButton"
+                                                            VerticalAlignment="Center"
+                                                            HorizontalAlignment="Right"
+                                                >
+                                                <AppBarButton.Icon>
+                                                    <SymbolIcon x:Name="myDownloadSymbol" Symbol="Download" />
+                                                </AppBarButton.Icon>
+                                            </AppBarButton>
                                             <AppBarButton x:Name='myFullWindowButton'
                                                             Style='{StaticResource AppBarButtonStyle}'
                                                             Label="myFullWindow"
@@ -766,6 +795,7 @@
                                                     <SymbolIcon x:Name="myFullWindowSymbol" Symbol="FullScreen" />
                                                 </AppBarButton.Icon>
                                             </AppBarButton>
+                                            
                                         </CommandBar.PrimaryCommands>
                                     </CommandBar>
                                 </Border>

@@ -147,9 +147,12 @@ namespace NetEasePlayer_UWP
         private void Play(String url)
         {
             Debug.WriteLine(url);
-
-            danmakuPlayer = new DanmakuPlayer();
-            if(container.Children != null)
+            if (isLive)
+                danmakuPlayer = new DanmakuPlayer();
+            else
+                danmakuPlayer = new DanmakuPlayer(Converter.Instance.TimeConverter(playing.start),
+                                                  Converter.Instance.TimeConverter(playing.end), live.Name);
+            if (container.Children != null)
                 container.Children.Clear();
             container.Children.Add(danmakuPlayer.container);
 
@@ -340,7 +343,7 @@ namespace NetEasePlayer_UWP
         private void send_Click(object sender, RoutedEventArgs e)
         {
             string mode ,danmakuText;
-            int offset;
+            TimeSpan offset;
             if (Option1CheckBox.IsChecked == true) mode = "top";
             else if (Option2CheckBox.IsChecked == true) mode = "scroll";
             else   mode = "bottom";
@@ -348,28 +351,29 @@ namespace NetEasePlayer_UWP
             danmakuText = danmakuInput.Text.ToString();
             danmakuInput.Text = "";
 
-            //offset 需要修改
-            offset = video_player.MediaPlayer.TimelineControllerPositionOffset.Seconds;
-            //Debug.WriteLine(video_player.MediaPlayer.TimelineController.State.ToString());
+            DateTime now = System.DateTime.Now; DateTime date;
+            if (isLive)
+                date = now;
+            else
+                date = Converter.Instance.TimeConverter(playing.start) + video_player.MediaPlayer.PlaybackSession.Position;
 
-            Debug.WriteLine("offset = " + offset.ToString());
-            Debug.WriteLine(video_player.MediaPlayer.PlaybackSession.PlaybackState.ToString());
-            Debug.WriteLine(video_player.MediaPlayer.PlaybackSession.Position.Seconds);
-            //offset = 0;
-            DateTime beginTime; DateTime now = new DateTime(); TimeSpan date;
+             //offset 需要修改
+            if (isLive)
+                offset = new TimeSpan(0);
+            else
+                offset = video_player.MediaPlayer.TimelineControllerPositionOffset;
 
-            if (isLive) date = now - new DateTime(now.Year,now.Month,now.Day);
-            else date = Converter.Instance.TimeConverter(playing.start) - new DateTime(now.Year, now.Month, now.Day) + video_player.MediaPlayer.PlaybackSession.Position; ;
-         
             Danmaku danmaku = new Danmaku
             {
                 Text = danmakuText,
                 Mode = mode,
                 Date = date,
-                Channel_id = live.Uid
+                Channel_id = live.Name,
+                Offset = offset
             };
             Debug.WriteLine("post danmaku");
-            DanmakuManager.Instance.Add(danmaku);
+            DanmakuManager.Instance.AddDanmaku(danmaku);
+
             Debug.WriteLine("post sc!");
             if ( mode == "scroll")
             {
@@ -420,6 +424,35 @@ namespace NetEasePlayer_UWP
             }
             
 
+        }
+        /// <summary>
+        /// xfang 下载
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void customMTC_Downloaded(object sender, EventArgs e)
+        {
+            Debug.WriteLine("click Download");
+        }
+        /// <summary>
+        /// xfang 直播
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void customMTC_Lived(object sender, EventArgs e)
+        {
+            Debug.WriteLine("click goLive");
+        }
+
+        private void customMTC_DanmakuOpened(object sender, EventArgs e)
+        {
+            if(container.Visibility == Visibility.Collapsed){
+                container.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                container.Visibility = Visibility.Collapsed;
+            }
         }
     }
 }
